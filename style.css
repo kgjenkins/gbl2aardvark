@@ -67,8 +67,10 @@ textarea {
 }
 
 ::placeholder {
+  padding-top: 4em;
   text-align: center;
   font-size: 200%;
+  color: #888;
 }
 
 .dragging {

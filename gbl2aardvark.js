@@ -1,3 +1,4 @@
+/* global testRecords */
 'use strict'
 
 const inputs = []
@@ -12,6 +13,12 @@ function init () {
   document.getElementById('input').addEventListener('change', processInput)
   document.getElementById('input').addEventListener('keyup', processInput)
   document.getElementById('download').addEventListener('click', downloadFile)
+  document.getElementById('test').addEventListener('click', loadTestRecords)
+}
+
+function loadTestRecords () {
+  document.getElementById('input').value = JSON.stringify(testRecords, null, 2)
+  processInput()
 }
 
 function dragEnter (e) {
@@ -47,7 +54,7 @@ function processFiles (files) {
     }
     const file = files[i]
     r.onload = function (e) {
-      try {
+      if (1) {
         // parse as json
         let j = JSON.parse(e.target.result)
 
@@ -60,7 +67,7 @@ function processFiles (files) {
         const pp = JSON.stringify(j, null, 2)
         inputs.push(pp)
         readFile(i + 1)
-      } catch {
+      } else {
         console.log('Error parsing JSON from file: ' + file.name)
       }
     }
@@ -140,55 +147,105 @@ function processInput () {
 function gbl2aardvark (r) {
   // convert record r to aardvark
 
-  function x(g, a) {
+  function copyField (g, a) {
     // simple transfer of gbl property g to aardvark property a
     if (r[g] !== undefined) {
       r2[a] = r[g]
     }
   }
 
+  function setResourceClass () {
+    // GBL1 has dc_type_s: Dataset | Image | Collection | Interactive Resource | Collection | Physical Object
+    // Aardvark has gbl_resourceClass_sm: Collections | Datasets | Imagery | Maps | Web services | Websites | Other
+    // TODO: should these new values be singular instead?  Also, image vs imagery
+    const crosswalk = {
+      'dataset': 'Datasets',
+      'image': 'Imagery',
+      'collection': 'Collections',
+      'interactive resource': 'Websites',
+      'physical object': 'Other'
+    }
+    const v1 = r.dc_type_s
+    let v2
+    try {
+      // use lowercase for case-insensitive matching
+      v2 = crosswalk[v1.toLowerCase()]
+    } catch { }
+    if (v2 === undefined) {
+      // because this is a required field
+      v2 = 'EDIT ME -- this record had dc_type_s = ' + v1
+    }
+    r2.gbl_resourceClass_sm = v2
+  }
+
+  function setResourceType () {
+    // GBL1 has layer_geom_type_s: Point | Line | Polygon | Image | Raster | Mixed | Table
+    // Aardvark has gbl_resourceType_sm: 81 possible values, https://opengeometadata.org/docs/ogm-aardvark/resource-type
+    const crosswalk = {
+      'point': 'Point data',
+      'line': 'Line data',
+      'polygon': 'Polygon data',
+      // 'image': '',
+      'raster': 'Raster data',
+      // 'mixed': '',
+      'table': 'Table data'
+    }
+    const v1 = r.layer_geom_type_s
+    let v2
+    try {
+      // use lowercase for case-insensitive matching
+      v2 = crosswalk[v1.toLowerCase()]
+    } catch { }
+    if (v2 === undefined && v1 !== undefined) {
+      v2 = 'EDIT ME -- this record had layer_geom_type_s = ' + v1
+    }
+    if (v2 !== undefined) {
+      r2.gbl_resourceType_sm = v2
+    }
+  }
+
   const r2 = {}
-  x('dc_title_s', 'dct_title_s')
-  x('', 'dct_alternative_sm')
-  x('dc_description_s', 'dct_description_sm')
-  x('dc_language_s or _sm', 'dct_language_sm')
-  x('dc_creator_sm', 'dct_creator_sm')
-  x('dc_publisher_s', 'dct_publisher_sm')
-  x('dct_provenance_s', 'schema_provider_s')
-  x('', 'gbl_resourceClass_sm')
-  x('', 'gbl_resourceType_sm')
-  x('dc_subject_sm', 'dct_subject_sm')
-  x('', 'dcat_theme_sm')
-  x('', 'dcat_keyword_sm')
-  x('dct_temporal_sm', 'dct_temporal_sm')
-  x('dct_issued_s', 'dct_issued_s')
-  x('solr_year_i', 'gbl_indexYear_im')
-  x('', 'gbl_dateRange_drsim')
-  x('dct_spatial_sm', 'dct_spatial_sm')
-  x('solr_geom', 'locn_geometry')
-  x('solr_geom', 'dcat_bbox')
-  x('', 'dcat_centroid')
-  x('', 'dct_relation_sm')
-  x('', 'pcdm_memberOf_sm')
-  x('', 'dct_isPartOf_sm')
-  x('dc_source_sm', 'dct_source_sm')
-  x('', 'dct_isVersionOf_sm')
-  x('', 'dct_replaces_sm')
-  x('', 'dct_isReplacedBy_sm')
-  x('', 'dct_rights_sm')
-  x('', 'dct_rightsHolder_sm')
-  x('', 'dct_license_sm')
-  x('dc_rights_s', 'dct_accessRights_s')
-  x('dc_format_s', 'dct_format_s')
-  x('', 'gbl_fileSize_s')
-  x('layer_id_s', 'gbl_wxsIdentifier_s')
-  x('dct_references_s', 'dct_references_s')
-  x('layer_slug_s', 'id')
-  x('dc_identifier_s', 'dct_identifier_sm')
-  x('layer_modified_dt', 'gbl_mdModified_dt')
+  copyField('dc_title_s', 'dct_title_s')
+  // copyField('', 'dct_alternative_sm') // new field -- no existing records would have this?
+  copyField('dc_description_s', 'dct_description_sm')
+  copyField('dc_language_s or _sm', 'dct_language_sm')
+  copyField('dc_creator_sm', 'dct_creator_sm')
+  copyField('dc_publisher_s', 'dct_publisher_sm')
+  copyField('dct_provenance_s', 'schema_provider_s')
+  setResourceClass()
+  setResourceType()
+  copyField('dc_subject_sm', 'dct_subject_sm')
+  copyField('', 'dcat_theme_sm')
+  copyField('', 'dcat_keyword_sm')
+  copyField('dct_temporal_sm', 'dct_temporal_sm')
+  copyField('dct_issued_s', 'dct_issued_s')
+  copyField('solr_year_i', 'gbl_indexYear_im')
+  copyField('', 'gbl_dateRange_drsim')
+  copyField('dct_spatial_sm', 'dct_spatial_sm')
+  copyField('solr_geom', 'locn_geometry')
+  copyField('solr_geom', 'dcat_bbox')
+  copyField('', 'dcat_centroid')
+  copyField('', 'dct_relation_sm')
+  copyField('', 'pcdm_memberOf_sm')
+  copyField('', 'dct_isPartOf_sm')
+  copyField('dc_source_sm', 'dct_source_sm')
+  copyField('', 'dct_isVersionOf_sm')
+  copyField('', 'dct_replaces_sm')
+  copyField('', 'dct_isReplacedBy_sm')
+  copyField('', 'dct_rights_sm')
+  copyField('', 'dct_rightsHolder_sm')
+  copyField('', 'dct_license_sm')
+  copyField('dc_rights_s', 'dct_accessRights_s')
+  copyField('dc_format_s', 'dct_format_s')
+  copyField('', 'gbl_fileSize_s')
+  copyField('layer_id_s', 'gbl_wxsIdentifier_s')
+  copyField('dct_references_s', 'dct_references_s')
+  copyField('layer_slug_s', 'id')
+  copyField('dc_identifier_s', 'dct_identifier_sm')
+  copyField('layer_modified_dt', 'gbl_mdModified_dt')
   r2['gbl_mdVersion_s'] = 'Aardvark'
-  x('suppressed_b', 'gbl_suppressed_b')
-  x('', 'gbl_georeferenced_b')
+  copyField('suppressed_b', 'gbl_suppressed_b')
+  copyField('', 'gbl_georeferenced_b')
 
   // any properties that can have multivalues
   // (with 'm' after the final underscore, like dct_language_sm)
