@@ -17,7 +17,12 @@ function init () {
 }
 
 function loadTestRecords () {
-  document.getElementById('input').value = JSON.stringify(testRecords, null, 2)
+  let input = JSON.stringify(testRecords, null, 2)
+
+  // add blank lines between records, for readability
+  input = input.replace(/},\n\s\s{/g, '},\n\n\n\n  {')
+
+  document.getElementById('input').value = input
   processInput()
 }
 
@@ -54,22 +59,23 @@ function processFiles (files) {
     }
     const file = files[i]
     r.onload = function (e) {
-      if (1) {
+      let j
+      try {
         // parse as json
-        let j = JSON.parse(e.target.result)
-
-        // if a full solr response, only use the response/docs
-        if (j.response && j.response.docs) {
-          j = j.response.docs
-        }
-
-        // pretty-print
-        const pp = JSON.stringify(j, null, 2)
-        inputs.push(pp)
-        readFile(i + 1)
-      } else {
-        console.log('Error parsing JSON from file: ' + file.name)
+        j = JSON.parse(e.target.result)
+      } catch {
+        window.alert('Error parsing JSON from file: ' + file.name)
+        return
       }
+      // if a full solr response, only use the response/docs
+      if (j.response && j.response.docs) {
+        j = j.response.docs
+      }
+
+      // pretty-print
+      const pp = JSON.stringify(j, null, 2)
+      inputs.push(pp)
+      readFile(i + 1)
     }
     r.readAsText(file)
   }
@@ -138,8 +144,8 @@ function processInput () {
   // convert data back to a string
   let output = JSON.stringify(j, null, 2)
 
-  // add blank line between records, for readability
-  output = output.replace(/},\n\s\s{/g, '},\n\n  {')
+  // add blank lines between records, for readability
+  output = output.replace(/},\n\s\s{/g, '},\n\n\n\n  {')
 
   document.getElementById('output').value = output
 }
@@ -204,6 +210,69 @@ function gbl2aardvark (r) {
     }
   }
 
+  function setTheme () {
+    // Set themes, based on dc_subject_sm
+    const keywords = {
+      'agriculture': 'agricultur.*,farming,cultivation,irrigation,aquaculture,plantation.*,herding,crop.*,livestock',
+
+      'biology': 'biolog.*,biota,flora,fauna,wildlife,vegetation,ecolog.*,wilderness,sealife,habitat,bird.*,mammal.*,fish.*,tree.*,flower.*',
+
+      'boundaries': 'boundar.*,politicaladministrative,admin.*',
+
+      'climate': 'climat.*,climatologymeteorologyatmosphere,atmospher.*,cloud cover,weather,precipitation,snow,ice,glacier.*,tornado.*',
+
+      'economy': 'econom.*,employ.*,business.*,labou?r,sales?,revenue,commerc.*,industr.*,tourism,forestry,fisher.*',
+
+      'elevation': 'elevation,altitude,dem,bathymetr.*,lidar,slope,topograph.*',
+
+      'environment': 'environment.*,conservation,pollut.*,waste,natur.*,landscape',
+
+      'events': 'events?,disasters?,concerts?,races?,protests?,crime,arrests?,accidents?,cases?',
+
+      'geology': 'geolog.*,geoscientificInformation,earth science,geophysic.*,minerals?,rocks?,earthquakes?,volcane*,landslides?,gravit.*,soils?,permafrost,erosion',
+
+      'health': 'health,human ecology,safety,diseases?,illness.*,hygiene,substance abuse,hospitals?,doctors?',
+
+      'imagery': 'image.*,aerial,photo.*,oblique,.*views?',
+
+      'inland waters': 'waters?,inlandWaters,drainages?,rivers?,streams?,glaciers?,lakes?,dams?,floods?,hydrograph.*',
+
+      'land cover': 'land cover,landcover,forests?,wetlands?,impervious.*,canop.*',
+
+      'location': 'location.*,position.*,address.*,geodetic,control points?,postal,place names?,placenames?,gazetteers?,zip\\s?codes?',
+
+      'military': 'militar.*,intelligenceMilitary,barracks',
+
+      'oceans': 'ocean.*,tides?,tidal,waves?,coast.*,reefs?',
+
+      'property': 'propert.*,planningCadastre,land use,zoning,cadastr.*,land ownership',
+
+      'society': 'society,cultures?,settlements?,anthropology,archaeology,education.*,tradition.*,manners,customs,demograph.*,recreation.*,social,crimes?,justice,census.*,sociolog.*,parks',
+
+      'structure': 'structur.*,man-made,construction.*,buildings?,museums?,church.*,factor(y|ies),hous(e|ing),monuments?,shop.*,towers?,parking',
+
+      'transportation': 'transport.*,roads?,streets?,airports?,airstrips?,shipping,tunnels?,nautical,vehic.*,vessels?,aeronaut.*,rail.*,transit,bus,buses,subways?',
+
+      'utilities': 'utilit.*,utilitiesCommunication,energy,communicat.*,sewers?,broadband,phones?,telephon.*,internet'
+    }
+    const subjects = r.dc_subject_sm
+    const themes = []
+    if (subjects && subjects.length > 0) {
+      for (let si = 0; si < subjects.length; si++) {
+        const subject = subjects[si].toLowerCase()
+        for (const [k, v] of Object.entries(keywords)) {
+          const re = new RegExp('\\b(' + v.replace(/,/g, '|') + ')\\b')
+          if (re.test(subject) && themes.indexOf(k) === -1) {
+            themes.push(k)
+          }
+        }
+      }
+    }
+    if (themes.length > 0) {
+      r2.dcat_theme_sm = themes
+    }
+  }
+
   const r2 = {}
   copyField('dc_title_s', 'dct_title_s')
   // copyField('', 'dct_alternative_sm') // new field -- no existing records would have this?
@@ -215,7 +284,7 @@ function gbl2aardvark (r) {
   setResourceClass()
   setResourceType()
   copyField('dc_subject_sm', 'dct_subject_sm')
-  copyField('', 'dcat_theme_sm')
+  setTheme()
   copyField('', 'dcat_keyword_sm')
   copyField('dct_temporal_sm', 'dct_temporal_sm')
   copyField('dct_issued_s', 'dct_issued_s')
@@ -243,7 +312,7 @@ function gbl2aardvark (r) {
   copyField('layer_slug_s', 'id')
   copyField('dc_identifier_s', 'dct_identifier_sm')
   copyField('layer_modified_dt', 'gbl_mdModified_dt')
-  r2['gbl_mdVersion_s'] = 'Aardvark'
+  r2['gbl_mdVersion_s'] = 'OGM Aardvark'
   copyField('suppressed_b', 'gbl_suppressed_b')
   copyField('', 'gbl_georeferenced_b')
 
