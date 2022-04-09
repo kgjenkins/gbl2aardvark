@@ -153,10 +153,11 @@ function processInput () {
 function gbl2aardvark (r) {
   // convert record r to aardvark
 
-  function copyField (g, a) {
-    // simple transfer of gbl property g to aardvark property a
-    if (r[g] !== undefined) {
-      r2[a] = r[g]
+  function renameField (g, a) {
+    // rename gbl property g to aardvark property a
+    if (r2[g] !== undefined) {
+      r2[a] = r2[g]
+      delete r2[g]
     }
   }
 
@@ -212,12 +213,15 @@ function gbl2aardvark (r) {
 
   function setTheme () {
     // Set themes, based on dc_subject_sm
+    // The following object defines various words that will be mapped to each theme.
+    // A keyword must match word boundaries unless it ends with .*
+    // For example "bus" will not match "business".
     const keywords = {
-      'agriculture': 'agricultur.*,farming,cultivation,irrigation,aquaculture,plantation.*,herding,crop.*,livestock',
+      'agriculture': 'agricultur.*,farm.*,cultiva.*,irrigation,aquaculture,plantation.*,herding,crop.*,livestock',
 
       'biology': 'biolog.*,biota,flora,fauna,wildlife,vegetation,ecolog.*,wilderness,sealife,habitat,bird.*,mammal.*,fish.*,tree.*,flower.*',
 
-      'boundaries': 'boundar.*,politicaladministrative,admin.*',
+      'boundaries': 'boundar.*,political,administrative',
 
       'climate': 'climat.*,climatologymeteorologyatmosphere,atmospher.*,cloud cover,weather,precipitation,snow,ice,glacier.*,tornado.*',
 
@@ -247,7 +251,7 @@ function gbl2aardvark (r) {
 
       'property': 'propert.*,planningCadastre,land use,zoning,cadastr.*,land ownership',
 
-      'society': 'society,cultures?,settlements?,anthropology,archaeology,education.*,tradition.*,manners,customs,demograph.*,recreation.*,social,crimes?,justice,census.*,sociolog.*,parks',
+      'society': 'society,cultures?,settlements?,anthropology,archaeology,education.*,tradition.*,manners,customs,demograph.*,recreation.*,social,crimes?,justice,census.*,sociolog.*,parks,elections?,voting,legislat.*',
 
       'structure': 'structur.*,man-made,construction.*,buildings?,museums?,church.*,factor(y|ies),hous(e|ing),monuments?,shop.*,towers?,parking',
 
@@ -273,48 +277,71 @@ function gbl2aardvark (r) {
     }
   }
 
-  const r2 = {}
-  copyField('dc_title_s', 'dct_title_s')
-  // copyField('', 'dct_alternative_sm') // new field -- no existing records would have this?
-  copyField('dc_description_s', 'dct_description_sm')
-  copyField('dc_language_s or _sm', 'dct_language_sm')
-  copyField('dc_creator_sm', 'dct_creator_sm')
-  copyField('dc_publisher_s', 'dct_publisher_sm')
-  copyField('dct_provenance_s', 'schema_provider_s')
+  // r2 begins as a copy of the original record
+  const r2 = Object.assign({}, r)
+  // TODO redo this, so that we iterate through all the existing fields,
+  // copying or renaming as necessary,
+  // and then add any new fields that should exist
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+  renameField('dc_title_s', 'dct_title_s') // renamed field
+  // renameField('', 'dct_alternative_sm') // new field -- no existing records would have this?
+  renameField('dc_description_s', 'dct_description_sm') // renamed field
+  renameField('dc_language_s', 'dct_language_sm') // renamed field
+  renameField('dc_language_sm', 'dct_language_sm') // renamed field
+  renameField('dc_creator_sm', 'dct_creator_sm') // renamed field
+  renameField('dc_publisher_s', 'dct_publisher_sm') // renamed field
+  renameField('dct_provenance_s', 'schema_provider_s') // renamed field
   setResourceClass()
   setResourceType()
-  copyField('dc_subject_sm', 'dct_subject_sm')
+  renameField('dc_subject_sm', 'dct_subject_sm') // renamed field
   setTheme()
-  copyField('', 'dcat_keyword_sm')
-  copyField('dct_temporal_sm', 'dct_temporal_sm')
-  copyField('dct_issued_s', 'dct_issued_s')
-  copyField('solr_year_i', 'gbl_indexYear_im')
-  copyField('', 'gbl_dateRange_drsim')
-  copyField('dct_spatial_sm', 'dct_spatial_sm')
-  copyField('solr_geom', 'locn_geometry')
-  copyField('solr_geom', 'dcat_bbox')
-  copyField('', 'dcat_centroid')
-  copyField('', 'dct_relation_sm')
-  copyField('', 'pcdm_memberOf_sm')
-  copyField('', 'dct_isPartOf_sm')
-  copyField('dc_source_sm', 'dct_source_sm')
-  copyField('', 'dct_isVersionOf_sm')
-  copyField('', 'dct_replaces_sm')
-  copyField('', 'dct_isReplacedBy_sm')
-  copyField('', 'dct_rights_sm')
-  copyField('', 'dct_rightsHolder_sm')
-  copyField('', 'dct_license_sm')
-  copyField('dc_rights_s', 'dct_accessRights_s')
-  copyField('dc_format_s', 'dct_format_s')
-  copyField('', 'gbl_fileSize_s')
-  copyField('layer_id_s', 'gbl_wxsIdentifier_s')
-  copyField('dct_references_s', 'dct_references_s')
-  copyField('layer_slug_s', 'id')
-  copyField('dc_identifier_s', 'dct_identifier_sm')
-  copyField('layer_modified_dt', 'gbl_mdModified_dt')
+  // renameField('', 'dcat_keyword_sm') // new field
+  renameField('dct_temporal_sm', 'dct_temporal_sm') // no change
+  renameField('dct_issued_s', 'dct_issued_s') // no change
+  renameField('solr_year_i', 'gbl_indexYear_im') // renamed field
+  //renameField('', 'gbl_dateRange_drsim') // new field
+  renameField('dct_spatial_sm', 'dct_spatial_sm') // no change
+  renameField('solr_geom', 'locn_geometry') // renamed field
+  renameField('solr_geom', 'dcat_bbox') // renamed field
+  //renameField('', 'dcat_centroid') // new field
+  renameField('', 'dct_relation_sm')
+  renameField('', 'pcdm_memberOf_sm')
+  renameField('', 'dct_isPartOf_sm')
+  renameField('dc_source_sm', 'dct_source_sm')
+  renameField('', 'dct_isVersionOf_sm')
+  renameField('', 'dct_replaces_sm')
+  renameField('', 'dct_isReplacedBy_sm')
+  renameField('', 'dct_rights_sm')
+  renameField('', 'dct_rightsHolder_sm')
+  renameField('', 'dct_license_sm')
+  renameField('dc_rights_s', 'dct_accessRights_s')
+  renameField('dc_format_s', 'dct_format_s')
+  renameField('', 'gbl_fileSize_s')
+  renameField('layer_id_s', 'gbl_wxsIdentifier_s')
+  renameField('dct_references_s', 'dct_references_s')
+  renameField('layer_slug_s', 'id')
+  renameField('dc_identifier_s', 'dct_identifier_sm')
+  renameField('layer_modified_dt', 'gbl_mdModified_dt')
+  delete r2['geoblacklight_version']
   r2['gbl_mdVersion_s'] = 'OGM Aardvark'
-  copyField('suppressed_b', 'gbl_suppressed_b')
-  copyField('', 'gbl_georeferenced_b')
+  renameField('suppressed_b', 'gbl_suppressed_b')
+  renameField('', 'gbl_georeferenced_b')
 
   // any properties that can have multivalues
   // (with 'm' after the final underscore, like dct_language_sm)
