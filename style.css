@@ -1,6 +1,6 @@
 body {
   background: #000;
-  color: #0f0;
+  color: #fff;
   font-family: "Segoe UI", sans-serif;
   margin: 1em;
 }
@@ -19,12 +19,18 @@ h2 {
   width: 42%;
   position: absolute;
   left: 1em;
+  color: #0f0;
 }
 
 .right {
   width: 45%;
   position: absolute;
   left: 50%;
+  color: #ff0;
+}
+
+.right button {
+  background: #ff0;
 }
 
 button {
@@ -37,7 +43,7 @@ button {
 }
 
 button:hover, button label:hover {
-  background: #0c0;
+  opacity: 0.7;
   cursor: pointer;
 }
 
@@ -56,9 +62,9 @@ button:hover, button label:hover {
 }
 
 textarea {
-  background: #111;
-  border:3px dotted #0f0;
-  color: #0f0;
+  background: #000;
+  border:2px solid #fff;
+  color: inherit;
   margin: 0.5em 0;
   padding: 4px;
   width: 100%;
