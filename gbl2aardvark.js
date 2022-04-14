@@ -150,14 +150,19 @@ function processInput () {
   document.getElementById('output').value = output
 }
 
-function gbl2aardvark (r) {
+function gbl2aardvark (r1) {
   // convert record r to aardvark
 
   function renameField (g, a) {
-    // rename gbl property g to aardvark property a
-    if (r2[g] !== undefined) {
-      r2[a] = r2[g]
-      delete r2[g]
+    // copy gbl field g of r to aardvark property a of r2
+    if (r1[g] !== undefined) {
+      r2[a] = r1[g]
+      delete r1[g]
+    }
+    // also copy any existing a field
+    if (r1[a] !== undefined) {
+      r2[a] = r1[a]
+      delete r1[a]
     }
   }
 
@@ -172,7 +177,7 @@ function gbl2aardvark (r) {
       'interactive resource': 'Websites',
       'physical object': 'Other'
     }
-    const v1 = r.dc_type_s
+    const v1 = r1.dc_type_s
     let v2
     try {
       // use lowercase for case-insensitive matching
@@ -183,6 +188,7 @@ function gbl2aardvark (r) {
       v2 = 'EDIT ME -- this record had dc_type_s = ' + v1
     }
     r2.gbl_resourceClass_sm = v2
+    delete r1.dc_type_s
   }
 
   function setResourceType () {
@@ -197,7 +203,7 @@ function gbl2aardvark (r) {
       // 'mixed': '',
       'table': 'Table data'
     }
-    const v1 = r.layer_geom_type_s
+    const v1 = r1.layer_geom_type_s
     let v2
     try {
       // use lowercase for case-insensitive matching
@@ -209,10 +215,11 @@ function gbl2aardvark (r) {
     if (v2 !== undefined) {
       r2.gbl_resourceType_sm = v2
     }
+    delete r1.layer_geom_type_s
   }
 
   function setTheme () {
-    // Set themes, based on dc_subject_sm
+    // Set themes of r2, based on dc_subject_sm of r1
     // The following object defines various words that will be mapped to each theme.
     // A keyword must match word boundaries unless it ends with .*
     // For example "bus" will not match "business".
@@ -259,7 +266,8 @@ function gbl2aardvark (r) {
 
       'utilities': 'utilit.*,utilitiesCommunication,energy,communicat.*,sewers?,broadband,phones?,telephon.*,internet'
     }
-    const subjects = r.dc_subject_sm
+    // get subjects from r2, since they have already been removed from r1
+    const subjects = r2.dct_subject_sm
     const themes = []
     if (subjects && subjects.length > 0) {
       for (let si = 0; si < subjects.length; si++) {
@@ -277,49 +285,45 @@ function gbl2aardvark (r) {
     }
   }
 
+  function setVersion () {
+    r2.gbl_mdVersion_s = 'OGM Aardvark'
+    delete r1.geoblacklight_version
+  }
+
+  function copyExtraFields () {
+    for (const p in r1) {
+      r2[p] = r1[p]
+      delete r1[p]
+    }
+  }
+
   // r2 begins as a copy of the original record
-  const r2 = Object.assign({}, r)
-  // TODO redo this, so that we iterate through all the existing fields,
+  const r2 = {}
+  // iterate through all the existing fields of r1,
   // copying or renaming as necessary,
   // and then add any new fields that should exist
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-  renameField('dc_title_s', 'dct_title_s') // renamed field
-  // renameField('', 'dct_alternative_sm') // new field -- no existing records would have this?
-  renameField('dc_description_s', 'dct_description_sm') // renamed field
-  renameField('dc_language_s', 'dct_language_sm') // renamed field
-  renameField('dc_language_sm', 'dct_language_sm') // renamed field
-  renameField('dc_creator_sm', 'dct_creator_sm') // renamed field
-  renameField('dc_publisher_s', 'dct_publisher_sm') // renamed field
-  renameField('dct_provenance_s', 'schema_provider_s') // renamed field
+  renameField('dc_title_s', 'dct_title_s')
+  renameField('', 'dct_alternative_sm')
+  renameField('dc_description_s', 'dct_description_sm')
+  renameField('dc_language_s', 'dct_language_sm')
+  renameField('dc_language_sm', 'dct_language_sm')
+  renameField('dc_creator_sm', 'dct_creator_sm')
+  renameField('dc_publisher_s', 'dct_publisher_sm')
+  renameField('dct_provenance_s', 'schema_provider_s')
   setResourceClass()
   setResourceType()
-  renameField('dc_subject_sm', 'dct_subject_sm') // renamed field
+  renameField('dc_subject_sm', 'dct_subject_sm')
   setTheme()
-  // renameField('', 'dcat_keyword_sm') // new field
-  renameField('dct_temporal_sm', 'dct_temporal_sm') // no change
-  renameField('dct_issued_s', 'dct_issued_s') // no change
-  renameField('solr_year_i', 'gbl_indexYear_im') // renamed field
-  //renameField('', 'gbl_dateRange_drsim') // new field
-  renameField('dct_spatial_sm', 'dct_spatial_sm') // no change
-  renameField('solr_geom', 'locn_geometry') // renamed field
-  renameField('solr_geom', 'dcat_bbox') // renamed field
-  //renameField('', 'dcat_centroid') // new field
+  renameField('', 'dcat_keyword_sm')
+  renameField('dct_temporal_sm', 'dct_temporal_sm')
+  renameField('dct_issued_s', 'dct_issued_s')
+  renameField('solr_year_i', 'gbl_indexYear_im')
+  renameField('', 'gbl_dateRange_drsim')
+  renameField('dct_spatial_sm', 'dct_spatial_sm')
+  renameField('solr_geom', 'locn_geometry')
+  renameField('solr_geom', 'dcat_bbox')
+  renameField('', 'dcat_centroid')
   renameField('', 'dct_relation_sm')
   renameField('', 'pcdm_memberOf_sm')
   renameField('', 'dct_isPartOf_sm')
@@ -332,16 +336,17 @@ function gbl2aardvark (r) {
   renameField('', 'dct_license_sm')
   renameField('dc_rights_s', 'dct_accessRights_s')
   renameField('dc_format_s', 'dct_format_s')
-  renameField('', 'gbl_fileSize_s')
+  renameField('cugir_filesize_s', 'gbl_fileSize_s')
   renameField('layer_id_s', 'gbl_wxsIdentifier_s')
   renameField('dct_references_s', 'dct_references_s')
   renameField('layer_slug_s', 'id')
   renameField('dc_identifier_s', 'dct_identifier_sm')
   renameField('layer_modified_dt', 'gbl_mdModified_dt')
-  delete r2['geoblacklight_version']
-  r2['gbl_mdVersion_s'] = 'OGM Aardvark'
+  setVersion()
   renameField('suppressed_b', 'gbl_suppressed_b')
   renameField('', 'gbl_georeferenced_b')
+
+  copyExtraFields()
 
   // any properties that can have multivalues
   // (with 'm' after the final underscore, like dct_language_sm)
