@@ -1,48 +1,49 @@
 # Notes, questions, and observations
 
 ## Title
-t_title_s (Required)
+dct_title_s (Required)
 
 ## Alternative Title
-t_alternative_sm (Optional)
+dct_alternative_sm (Optional)
 
 ## Description
-t_description_sm (Recommended)
+dct_description_sm (Recommended)
 
 ## Language
-t_language_sm (Optional)
+dct_language_sm (Optional)
 
 ## Creator
-t_creator_sm (Recommended)
+dct_creator_sm (Recommended)
 
 ## Publisher
-t_publisher_sm (Recommended)
+dct_publisher_sm (Recommended)
 
 ## Provider
 schema_provider_s (Recommended)
-- strange name -- why "schema_"?
+- strange name -- why "schema_"? -- how about `gbl_mdSource_s` ?
 
 ## Resource Class
 gbl_resourceClass_sm (Required)
+- why are these plural?
 
 ## Resource Type
 gbl_resourceType_sm (Recommended)
 
 ## Subject
-t_subject_sm (Optional)
+dct_subject_sm (Optional)
 
 ## Theme
-at_theme_sm (Optional)
+dcat_theme_sm (Optional)
 - should these be capitalized, or lowercase?
 
 ## Keyword
-at_keyword_sm (Optional)
+dcat_keyword_sm (Optional)
 
 ## Temporal Coverage
-t_temporal_sm (Recommended)
+dct_temporal_sm (Recommended)
 
 ## Date Issued
-t_issued_s (Optional)
+dct_issued_s (Optional)
 
 ## Index Year
 gbl_indexYear_im (Recommended)
@@ -51,68 +52,69 @@ gbl_indexYear_im (Recommended)
 gbl_dateRange_drsim (Optional)
 
 ## Spatial Coverage
-t_spatial_sm (Recommended)
+dct_spatial_sm (Recommended)
 
 ## Geometry
 locn_geometry (Recommended)
 
 ## Bounding Box
-at_bbox (Recommended)
+dcat_bbox (Recommended)
 
 ## Centroid
-at_centroid (Optional)
+dcat_centroid (Optional)
 
 ## Relation
-t_relation_sm (Optional)
+dct_relation_sm (Optional)
 
 ## Member Of
 pcdm_memberOf_sm (Optional)
 
 ## Is Part Of
-t_isPartOf_sm (Optional)
+dct_isPartOf_sm (Optional)
 
 ## Source
-t_source_sm (Optional)
+dct_source_sm (Optional)
 
 ## Is Version Of
-t_isVersionOf_sm (Optional)
+dct_isVersionOf_sm (Optional)
 
 ## Replaces
-t_replaces_sm (Optional)
+dct_replaces_sm (Optional)
 
 ## Is Replaced By
-t_isReplacedBy_sm (Optional)
+dct_isReplacedBy_sm (Optional)
 
 ## Rights
-t_rights_sm (Recommended)
+dct_rights_sm (Recommended)
 
 ## Rights Holder
-t_rightsHolder_sm (Optional)
+dct_rightsHolder_sm (Optional)
 
 ## License
-t_license_sm (Optional)
+dct_license_sm (Optional)
 
 ## Access Rights
-t_accessRights_s (Required)
+dct_accessRights_s (Required)
 
 ## Format
-t_format_s (Conditional)
+dct_format_s (Conditional)
 
 ## File Size
 gbl_fileSize_s (Optional)
 
 ## WxS Identifier
 gbl_wxsIdentifier_s (Conditional)
+- why isn't this stored within dct_references? (where WMS/WFS are)
 
 ## References
-t_references_s (Recommended)
+dct_references_s (Recommended)
 
 ## ID
 id (Required)
 - move this to the top?
 
 ## Identifier
-t_identifier_sm (Recommended)
+dct_identifier_sm (Recommended)
 
 ## Modified
 gbl_mdModified_dt (Required)
