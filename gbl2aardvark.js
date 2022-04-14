@@ -280,6 +280,19 @@ function gbl2aardvark (r1) {
         }
       }
     }
+    // add any cugir categories that we don't already have in themes
+    if (r1.cugir_category_sm) {
+      for (let i = 0; i < r1.cugir_category_sm.length; i++) {
+        let t = r1.cugir_category_sm[i]
+        if (t === 'landcover') {
+          t = 'land cover'
+        }
+        if (themes.indexOf(t) === -1) {
+          themes.push(t)
+        }
+      }
+      delete r1.cugir_category_sm
+    }
     if (themes.length > 0) {
       r2.dcat_theme_sm = themes
     }
