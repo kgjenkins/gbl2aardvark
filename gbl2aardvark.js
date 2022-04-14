@@ -297,6 +297,23 @@ function gbl2aardvark (r1) {
     }
   }
 
+  function checkMultiValues () {
+    for (const p in r2) {
+      const v = r2[p]
+
+      // check for _sm suffix, and make sure those are arrays
+      const suffix = p.split('_').slice(-1)[0]
+      if (suffix === 'sm' && !Array.isArray(v)) {
+        r2[p] = [v]
+      }
+
+      // omit empty arrays
+      if (r2[p].length === 0) {
+        delete r2[p]
+      }
+    }
+  }
+
   // r2 begins as a copy of the original record
   const r2 = {}
   // iterate through all the existing fields of r1,
@@ -345,18 +362,7 @@ function gbl2aardvark (r1) {
   setVersion()
   renameField('suppressed_b', 'gbl_suppressed_b')
   renameField('', 'gbl_georeferenced_b')
-
   copyExtraFields()
-
-  // any properties that can have multivalues
-  // (with 'm' after the final underscore, like dct_language_sm)
-  // should always have array values
-  for (const p in r2) {
-    const v = r2[p]
-    const suffix = p.split('_').slice(-1)[0]
-    if (suffix === 'sm' && !Array.isArray(v)) {
-      r2[p] = [v]
-    }
-  }
+  checkMultiValues()
   return r2
 }
