@@ -298,6 +298,16 @@ function gbl2aardvark (r1) {
     }
   }
 
+  function setDateRange () {
+    renameField('', 'gbl_dateRange_drsim')
+    if (!r2.gbl_dateRange_drsim) {
+      // try to create from dct_temporal_sm
+      if (/\d{4} to \d{4}/.test(r2.dct_temporal_sm)) {
+        r2.gbl_dateRange_drsim = '[' + r2.dct_temporal_sm + ']'
+      }
+    }
+  }
+
   function setVersion () {
     r2.gbl_mdVersion_s = 'OGM Aardvark'
     delete r1.geoblacklight_version
@@ -349,7 +359,7 @@ function gbl2aardvark (r1) {
   renameField('dct_temporal_sm', 'dct_temporal_sm')
   renameField('dct_issued_s', 'dct_issued_s')
   renameField('solr_year_i', 'gbl_indexYear_im')
-  renameField('', 'gbl_dateRange_drsim')
+  setDateRange()
   renameField('dct_spatial_sm', 'dct_spatial_sm')
   renameField('solr_geom', 'locn_geometry')
   renameField('solr_geom', 'dcat_bbox')
