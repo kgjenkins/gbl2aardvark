@@ -1,4 +1,4 @@
-/* global testRecords */
+/* global testRecords,cugirRecords */
 'use strict'
 
 const inputs = []
@@ -11,13 +11,23 @@ function init () {
   document.getElementById('input').addEventListener('dragleave', dragLeave)
   document.getElementById('input').addEventListener('drop', dropFiles)
   document.getElementById('input').addEventListener('change', processInput)
-  document.getElementById('input').addEventListener('keyup', processInput)
   document.getElementById('download').addEventListener('click', downloadFile)
   document.getElementById('test').addEventListener('click', loadTestRecords)
+  document.getElementById('cugir').addEventListener('click', loadCugirRecords)
 }
 
 function loadTestRecords () {
   let input = JSON.stringify(testRecords, null, 2)
+
+  // add blank lines between records, for readability
+  input = input.replace(/},\n\s\s{/g, '},\n\n\n\n  {')
+
+  document.getElementById('input').value = input
+  processInput()
+}
+
+function loadCugirRecords () {
+  let input = JSON.stringify(cugirRecords, null, 2)
 
   // add blank lines between records, for readability
   input = input.replace(/},\n\s\s{/g, '},\n\n\n\n  {')
@@ -337,11 +347,8 @@ function gbl2aardvark (r1) {
     }
   }
 
-  // r2 begins as a copy of the original record
   const r2 = {}
-  // iterate through all the existing fields of r1,
-  // copying or renaming as necessary,
-  // and then add any new fields that should exist
+  // iterate through all the possible destination fields
 
   renameField('dc_title_s', 'dct_title_s')
   renameField('', 'dct_alternative_sm')
