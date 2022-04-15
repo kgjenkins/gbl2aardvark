@@ -350,6 +350,8 @@ function gbl2aardvark (r1) {
   const r2 = {}
   // iterate through all the possible destination fields
 
+  renameField('layer_slug_s', 'id')
+  renameField('dc_identifier_s', 'dct_identifier_sm')
   renameField('dc_title_s', 'dct_title_s')
   renameField('', 'dct_alternative_sm')
   renameField('dc_description_s', 'dct_description_sm')
@@ -386,8 +388,6 @@ function gbl2aardvark (r1) {
   renameField('cugir_filesize_s', 'gbl_fileSize_s')
   renameField('layer_id_s', 'gbl_wxsIdentifier_s')
   renameField('dct_references_s', 'dct_references_s')
-  renameField('layer_slug_s', 'id')
-  renameField('dc_identifier_s', 'dct_identifier_sm')
   renameField('layer_modified_dt', 'gbl_mdModified_dt')
   setVersion()
   renameField('suppressed_b', 'gbl_suppressed_b')
