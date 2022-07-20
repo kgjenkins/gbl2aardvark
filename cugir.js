@@ -1486,7 +1486,7 @@ const cugirRecords = [
 "cugir_filesize_s":"0.04 MB",
 "layer_geom_type_s":"Point",
 "layer_modified_dt":"2019-05-24T00:00:00Z",
-"dc_creator_sm":["New York State Department of Energy Conservation. Bureau of Air Quality Surveillance"],
+"dc_creator_sm":["New York State Department of Environmental Conservation. Bureau of Air Quality Surveillance"],
 "dc_subject_sm":["Air quality monitoring stations",
   "Air--Pollution--Measurement"],
 "cugir_category_sm":["climate",
