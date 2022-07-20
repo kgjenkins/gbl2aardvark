@@ -323,6 +323,10 @@ function gbl2aardvark (r1) {
     delete r1.geoblacklight_version
   }
 
+  function setAccessRights () {
+    r2.dct_accessRights_s = r1.dc_rights_s || 'Public'
+  }
+
   function copyExtraFields () {
     for (const p in r1) {
       r2[p] = r1[p]
@@ -383,7 +387,7 @@ function gbl2aardvark (r1) {
   renameField('', 'dct_rights_sm')
   renameField('', 'dct_rightsHolder_sm')
   renameField('', 'dct_license_sm')
-  renameField('dc_rights_s', 'dct_accessRights_s')
+  setAccessRights()
   renameField('dc_format_s', 'dct_format_s')
   renameField('cugir_filesize_s', 'gbl_fileSize_s')
   renameField('layer_id_s', 'gbl_wxsIdentifier_s')
