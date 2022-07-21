@@ -329,6 +329,9 @@ function gbl2aardvark (r1) {
 
   function setReferences () {
     let ref = r1.dct_references_s
+    if (ref === undefined) {
+      return
+    }
     try {
       ref = JSON.parse(ref)
     } catch {
