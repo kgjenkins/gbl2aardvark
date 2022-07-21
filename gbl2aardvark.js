@@ -163,16 +163,16 @@ function processInput () {
 function gbl2aardvark (r1) {
   // convert record r to aardvark
 
-  function renameField (g, a) {
-    // copy gbl field g of r to aardvark property a of r2
+  function renameField (g, a, deleteField = true) {
+    // copy gbl field g of r1 to aardvark property a of r2
     if (r1[g] !== undefined) {
       r2[a] = r1[g]
-      delete r1[g]
+      if (deleteField) delete r1[g]
     }
     // also copy any existing a field
     if (r1[a] !== undefined) {
       r2[a] = r1[a]
-      delete r1[a]
+      if (deleteField) delete r1[a]
     }
   }
 
@@ -327,6 +327,47 @@ function gbl2aardvark (r1) {
     r2.dct_accessRights_s = r1.dc_rights_s || 'Public'
   }
 
+  function setReferences () {
+    let ref = r1.dct_references_s
+    try {
+      ref = JSON.parse(ref)
+    } catch {
+      console.log('error parsing dct_references_s: ' + ref)
+      r2.dct_references_s = ref
+      return
+    }
+    let downloads = []
+    let dl = ref['http://schema.org/downloadUrl']
+    if (dl) {
+      if (typeof(dl) === 'string') {    
+        // copy existing string containing single url
+        downloads.push({'label': r2.dct_format_s, 'url': dl})
+      } else if (typeof(dl) === 'object') {
+        // copy existing new-style downloads
+        downloads = dl
+      }
+    }
+    // add additional downloads from these custom fields
+    for (let f of ['cugir_addl_downloads_s', 'nyu_addl_downloads_s']) {
+      let addlstr = r1[f]
+      if (addlstr) {
+        try {
+          let addlobj = JSON.parse(addlstr)
+          for (let k of Object.keys(addlobj)) {
+            downloads.push({'label': k, 'url': addlobj[k]})
+          }
+          delete r1[f]
+        }
+        catch {
+          console.log('error parsing ' + f + ': ' + addlstr)
+        }
+      }
+    }
+    ref['http://schema.org/downloadUrl'] = downloads
+    r2.dct_references_s = JSON.stringify(ref)
+    delete r1.dct_references_s
+  }
+
   function copyExtraFields () {
     for (const p in r1) {
       r2[p] = r1[p]
@@ -354,6 +395,9 @@ function gbl2aardvark (r1) {
   const r2 = {}
   // iterate through all the possible destination fields
 
+
+  // TODO don't delete original fields, but rather keep track of which we'll already dealt with
+
   renameField('layer_slug_s', 'id')
   renameField('dc_identifier_s', 'dct_identifier_sm')
   renameField('dc_title_s', 'dct_title_s')
@@ -374,7 +418,7 @@ function gbl2aardvark (r1) {
   renameField('solr_year_i', 'gbl_indexYear_im')
   setDateRange()
   renameField('dct_spatial_sm', 'dct_spatial_sm')
-  renameField('solr_geom', 'locn_geometry')
+  renameField('solr_geom', 'locn_geometry', false)
   renameField('solr_geom', 'dcat_bbox')
   renameField('', 'dcat_centroid')
   renameField('', 'dct_relation_sm')
@@ -391,7 +435,7 @@ function gbl2aardvark (r1) {
   renameField('dc_format_s', 'dct_format_s')
   renameField('cugir_filesize_s', 'gbl_fileSize_s')
   renameField('layer_id_s', 'gbl_wxsIdentifier_s')
-  renameField('dct_references_s', 'dct_references_s')
+  setReferences()
   renameField('layer_modified_dt', 'gbl_mdModified_dt')
   setVersion()
   renameField('suppressed_b', 'gbl_suppressed_b')
