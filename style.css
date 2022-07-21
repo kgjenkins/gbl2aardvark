@@ -61,6 +61,10 @@ button:hover, button label:hover {
   cursor: pointer;
 }
 
+button:disabled {
+  opacity: 0.3;
+}
+
 #inputFiles {
   display: none;
 }

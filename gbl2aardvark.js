@@ -100,9 +100,6 @@ function gotInputs () {
   }
   document.getElementById('input').value = input
   processInput()
-
-  // enable the download button
-  document.getElementById('download').disabled = false
 }
 
 function downloadFile () {
@@ -158,6 +155,9 @@ function processInput () {
   output = output.replace(/},\n\s\s{/g, '},\n\n\n\n  {')
 
   document.getElementById('output').value = output
+
+  // enable the download button
+  document.getElementById('download').removeAttribute('disabled')
 }
 
 function gbl2aardvark (r1) {
