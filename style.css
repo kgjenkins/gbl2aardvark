@@ -5,6 +5,8 @@ body {
   margin: 1em;
 }
 
+a, a:visited { color: #0ff}
+
 h1 {
   font-size: 175%;
   margin: 0 0 1em;
