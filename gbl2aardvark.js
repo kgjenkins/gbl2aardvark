@@ -3,6 +3,10 @@
 
 const inputs = []
 
+// collections will contain automatically-generated parent records that
+// will be referenced by isPartOf
+const collections = {}
+
 document.addEventListener('DOMContentLoaded', init)
 
 function init () {
@@ -148,6 +152,16 @@ function processInput () {
     j = gbl2aardvark(j)
   }
 
+  // add any new collection records
+  for (let c in collections) {
+    let cr = collections[c]
+
+    // remove temp field
+    delete cr.bbox
+    
+    j.push(cr)
+  }
+
   // convert data back to a string
   let output = JSON.stringify(j, null, 2)
 
@@ -161,19 +175,239 @@ function processInput () {
 }
 
 function gbl2aardvark (r1) {
-  // convert record r to aardvark
+  // convert gbl record r1 to aardvark
 
-  function renameField (g, a, deleteField = true) {
-    // copy gbl field g of r1 to aardvark property a of r2
+  // make sure r1 is valid
+  r1 = checkValues(r1)
+
+  // r2 will contain the new record
+  let r2 = {}
+
+  // track which fields we have seen
+  const seen = []
+
+  // process all the possible destination fields (in this order, for a more logical record layout)
+  renameField('layer_slug_s', 'id')
+  renameField('dc_identifier_s', 'dct_identifier_sm')
+  renameField('dc_title_s', 'dct_title_s')
+  copyField('dct_alternative_sm')
+  renameField('dc_description_s', 'dct_description_sm')
+  renameField('dc_language_s', 'dct_language_sm')
+  renameField('dc_language_sm', 'dct_language_sm')
+  renameField('dc_creator_sm', 'dct_creator_sm')
+  renameField('dc_publisher_s', 'dct_publisher_sm')
+  renameField('dct_provenance_s', 'schema_provider_s')
+  setResourceClass()
+  setResourceType()
+  renameField('dc_subject_sm', 'dct_subject_sm')
+  setTheme()
+  copyField('dcat_keyword_sm')
+  renameField('dct_temporal_sm', 'dct_temporal_sm')
+  renameField('dct_issued_s', 'dct_issued_s')
+  renameField('solr_year_i', 'gbl_indexYear_im')
+  setDateRange()
+  renameField('dct_spatial_sm', 'dct_spatial_sm')
+  renameField('solr_geom', 'locn_geometry')
+  renameField('solr_geom', 'dcat_bbox')
+  copyField('dcat_centroid')
+  copyField('dct_relation_sm')
+  copyField('pcdm_memberOf_sm')
+  renameField('dc_source_sm', 'dct_source_sm')
+  copyField('dct_isVersionOf_sm')
+  copyField('dct_replaces_sm')
+  copyField('dct_isReplacedBy_sm')
+  copyField('dct_rights_sm')
+  copyField('dct_rightsHolder_sm')
+  copyField('dct_license_sm')
+  setAccessRights()
+  renameField('dc_format_s', 'dct_format_s')
+  renameField('cugir_filesize_s', 'gbl_fileSize_s')
+  renameField('layer_id_s', 'gbl_wxsIdentifier_s')
+  setReferences()
+  renameField('layer_modified_dt', 'gbl_mdModified_dt')
+  setVersion()
+  renameField('suppressed_b', 'gbl_suppressed_b')
+  copyField('gbl_georeferenced_b')
+  setIsPartOf()
+  copyExtraFields()
+  r2 = checkValues(r2)
+  return r2
+
+  function see(g) {
+    // note that we have seen field g
+    if (seen.indexOf(g) === -1) {
+      seen.push(g)
+    }
+  }
+
+  function copyField (f) {
+    // copy gbl field f from r1 to r2
+    if (r1[f] !== undefined) {
+      see(f)
+      r2[f] = r1[f]
+    }
+  }
+
+  function renameField(g, a) {
+    // rename gbl field g of r1 to aardvark field a of r2
+    if (a === undefined) {
+      console.log('rename requires 2 params', g)
+    }
+
     if (r1[g] !== undefined) {
+      see(g)
       r2[a] = r1[g]
-      if (deleteField) delete r1[g]
     }
-    // also copy any existing a field
+    // also copy any existing field having the new name
     if (r1[a] !== undefined) {
+      if (a !== g && r2[a]) {
+        console.log('overwriting value of ' + a, r2)
+      }
       r2[a] = r1[a]
-      if (deleteField) delete r1[a]
     }
+  }
+
+  function setAccessRights () {
+    // default to public, unless otherwise specified
+    r2.dct_accessRights_s = r1.dc_rights_s || 'Public'
+  }
+
+  function setDateRange () {
+    copyField('gbl_dateRange_drsim')
+    if (!r2.gbl_dateRange_drsim) {
+      // try to create from dct_temporal_sm
+      if (/\d{4} to \d{4}/.test(r2.dct_temporal_sm)) {
+        r2.gbl_dateRange_drsim = '[' + r2.dct_temporal_sm + ']'
+      }
+    }
+  }
+
+  function setIsPartOf () {
+    let c = r1.dct_isPartOf_sm
+    if (c === undefined) {
+      return
+    }
+    if (collections[c] === undefined) {
+      // create new collection record
+      let cr = {}
+      // starting with copy of r2
+      Object.assign(cr, r2)
+      // and modifing/removing some fields
+      cr.id = collectionId(c)
+      delete cr.dct_identifier_sm
+      cr.dct_title_s = c
+      cr.dct_description_sm = ['EDIT ME to describe the whole collection -- ' + cr.dct_description_sm]
+      cr.gbl_resourceClass_sm = 'Collections'
+      delete cr.gbl_fileSize_s
+      delete cr.dct_source_sm
+
+      let bbox = parseBbox(cr.dcat_bbox)
+      if (bbox !== undefined) {
+        cr.bbox = bbox
+      }
+
+      cr.count = 1
+      collections[c] = cr
+    } else {
+      // collection record exists, so modify with info from r1
+      let cr = collections[c]
+
+      // expand bbox to includ new item
+      let bbox = parseBbox(r2.dcat_bbox)
+      if (bbox[0] > cr.bbox[0]) {
+        cr.bbox[0] = bbox[0]
+      }
+      if (bbox[1] < cr.bbox[1]) {
+        cr.bbox[1] = bbox[1]
+      }
+      if (bbox[2] > cr.bbox[2]) {
+        cr.bbox[2] = bbox[2]
+      }
+      if (bbox[3] < cr.bbox[3]) {
+        cr.bbox[3] = bbox[3]
+      }
+      cr.dcat_bbox = `ENVELOPE(${cr.bbox.join(', ')})`
+
+      cr = addNewValues(cr, 'dct_language_sm')
+      cr = addNewValues(cr, 'dct_creator_sm')
+      cr = addNewValues(cr, 'dct_publisher_sm')
+      cr = addNewValues(cr, 'gbl_resourceType_sm')
+      cr = addNewValues(cr, 'dct_subject_sm')
+      cr = addNewValues(cr, 'dcat_theme_sm')
+      cr = addNewValues(cr, 'dcat_keyword_sm')
+      cr = addNewValues(cr, 'dct_temporal_sm')
+      cr = addNewValues(cr, 'gbl_indexYear_im')
+      cr = addNewValues(cr, 'dct_spatial_sm')
+      cr.count++
+    }
+  }
+
+  function addNewValues(cr, f) {
+    // add any new values of field f to collection record cr
+    const v = r2[f]
+    if (v !== undefined) {
+      for (let i = 0; i < v.length; i++) {
+        if (cr[f].indexOf(v[i]) === -1) {
+          cr[f].push(v[i])
+          cr[f] = cr[f].sort()
+        }
+      }
+    }
+    return cr
+  }
+
+  function collectionId (c) {
+    // TODO allow user-defined prefix, or a naming scheme based on the collection name c 
+    return "generated-collection-" + Math.floor(Math.random()*1000000000000).toString(36)
+  }
+
+  function parseBbox (s) {
+    let m = s.match(/ENVELOPE\(\s*([\d.-]+),\s*([\d.-]+),\s*([\d.-]+),\s*([\d.-]+)/)
+    return m.slice(1)
+  }
+  
+  function setReferences () {
+    let ref = r1.dct_references_s
+    if (ref === undefined) {
+      return
+    }
+    try {
+      ref = JSON.parse(ref)
+    } catch {
+      console.log('error parsing dct_references_s: ' + ref)
+      r2.dct_references_s = ref
+      return
+    }
+    let downloads = []
+    let dl = ref['http://schema.org/downloadUrl']
+    if (dl) {
+      if (typeof(dl) === 'string') {    
+        // copy existing string containing single url
+        downloads.push({'label': r2.dct_format_s, 'url': dl})
+      } else if (typeof(dl) === 'object') {
+        // copy existing new-style downloads
+        downloads = dl
+      }
+    }
+    // add additional downloads from these custom fields
+    for (let f of ['cugir_addl_downloads_s', 'nyu_addl_downloads_s']) {
+      let addlstr = r1[f]
+      if (addlstr) {
+        try {
+          let addlobj = JSON.parse(addlstr)
+          for (let k of Object.keys(addlobj)) {
+            downloads.push({'label': k, 'url': addlobj[k]})
+          }
+          delete r1[f]
+        }
+        catch {
+          console.log('error parsing ' + f + ': ' + addlstr)
+        }
+      }
+    }
+    ref['http://schema.org/downloadUrl'] = downloads
+    r2.dct_references_s = JSON.stringify(ref)
+    delete r1.dct_references_s
   }
 
   function setResourceClass () {
@@ -197,7 +431,7 @@ function gbl2aardvark (r1) {
       // because this is a required field
       v2 = 'EDIT ME -- this record had dc_type_s = ' + v1
     }
-    r2.gbl_resourceClass_sm = v2
+    r2.gbl_resourceClass_sm = [v2]
     delete r1.dc_type_s
   }
 
@@ -223,7 +457,7 @@ function gbl2aardvark (r1) {
       v2 = 'EDIT ME -- this record had layer_geom_type_s = ' + v1
     }
     if (v2 !== undefined) {
-      r2.gbl_resourceType_sm = v2
+      r2.gbl_resourceType_sm = [v2]
     }
     delete r1.layer_geom_type_s
   }
@@ -276,9 +510,13 @@ function gbl2aardvark (r1) {
 
       'utilities': 'utilit.*,utilitiesCommunication,energy,communicat.*,sewers?,broadband,phones?,telephon.*,internet'
     }
-    // get subjects from r2, since they have already been removed from r1
-    const subjects = r2.dct_subject_sm
-    const themes = []
+
+    let themes = r1.dcat_theme_sm
+    if (themes === undefined) {
+      themes = []
+    }
+
+    const subjects = r1.dct_subject_sm
     if (subjects && subjects.length > 0) {
       for (let si = 0; si < subjects.length; si++) {
         const subject = subjects[si].toLowerCase()
@@ -308,142 +546,35 @@ function gbl2aardvark (r1) {
     }
   }
 
-  function setDateRange () {
-    renameField('', 'gbl_dateRange_drsim')
-    if (!r2.gbl_dateRange_drsim) {
-      // try to create from dct_temporal_sm
-      if (/\d{4} to \d{4}/.test(r2.dct_temporal_sm)) {
-        r2.gbl_dateRange_drsim = '[' + r2.dct_temporal_sm + ']'
-      }
-    }
-  }
-
   function setVersion () {
-    r2.gbl_mdVersion_s = 'OGM Aardvark'
+    r2.gbl_mdVersion_s = 'Aardvark'
     delete r1.geoblacklight_version
-  }
-
-  function setAccessRights () {
-    r2.dct_accessRights_s = r1.dc_rights_s || 'Public'
-  }
-
-  function setReferences () {
-    let ref = r1.dct_references_s
-    if (ref === undefined) {
-      return
-    }
-    try {
-      ref = JSON.parse(ref)
-    } catch {
-      console.log('error parsing dct_references_s: ' + ref)
-      r2.dct_references_s = ref
-      return
-    }
-    let downloads = []
-    let dl = ref['http://schema.org/downloadUrl']
-    if (dl) {
-      if (typeof(dl) === 'string') {    
-        // copy existing string containing single url
-        downloads.push({'label': r2.dct_format_s, 'url': dl})
-      } else if (typeof(dl) === 'object') {
-        // copy existing new-style downloads
-        downloads = dl
-      }
-    }
-    // add additional downloads from these custom fields
-    for (let f of ['cugir_addl_downloads_s', 'nyu_addl_downloads_s']) {
-      let addlstr = r1[f]
-      if (addlstr) {
-        try {
-          let addlobj = JSON.parse(addlstr)
-          for (let k of Object.keys(addlobj)) {
-            downloads.push({'label': k, 'url': addlobj[k]})
-          }
-          delete r1[f]
-        }
-        catch {
-          console.log('error parsing ' + f + ': ' + addlstr)
-        }
-      }
-    }
-    ref['http://schema.org/downloadUrl'] = downloads
-    r2.dct_references_s = JSON.stringify(ref)
-    delete r1.dct_references_s
   }
 
   function copyExtraFields () {
     for (const p in r1) {
-      r2[p] = r1[p]
-      delete r1[p]
+      // copy any fields we haven't already seen and dealt with
+      if (seen.indexOf(p) === -1) {
+        r2[p] = r1[p]
+      }
     }
   }
 
-  function checkMultiValues () {
-    for (const p in r2) {
-      const v = r2[p]
+  function checkValues (r) {
+    for (const p in r) {
+      const v = r[p]
 
       // check for _sm suffix, and make sure those are arrays
       const suffix = p.split('_').slice(-1)[0]
       if (suffix === 'sm' && !Array.isArray(v)) {
-        r2[p] = [v]
+        r[p] = [v]
       }
 
-      // omit empty arrays
-      if (r2[p].length === 0) {
-        delete r2[p]
+      // omit empty arrays and strings
+      if (r[p].length === 0) {
+        delete r[p]
       }
     }
+    return r
   }
-
-  const r2 = {}
-  // iterate through all the possible destination fields
-
-
-  // TODO don't delete original fields, but rather keep track of which we'll already dealt with
-
-  renameField('layer_slug_s', 'id')
-  renameField('dc_identifier_s', 'dct_identifier_sm')
-  renameField('dc_title_s', 'dct_title_s')
-  renameField('', 'dct_alternative_sm')
-  renameField('dc_description_s', 'dct_description_sm')
-  renameField('dc_language_s', 'dct_language_sm')
-  renameField('dc_language_sm', 'dct_language_sm')
-  renameField('dc_creator_sm', 'dct_creator_sm')
-  renameField('dc_publisher_s', 'dct_publisher_sm')
-  renameField('dct_provenance_s', 'schema_provider_s')
-  setResourceClass()
-  setResourceType()
-  renameField('dc_subject_sm', 'dct_subject_sm')
-  setTheme()
-  renameField('', 'dcat_keyword_sm')
-  renameField('dct_temporal_sm', 'dct_temporal_sm')
-  renameField('dct_issued_s', 'dct_issued_s')
-  renameField('solr_year_i', 'gbl_indexYear_im')
-  setDateRange()
-  renameField('dct_spatial_sm', 'dct_spatial_sm')
-  renameField('solr_geom', 'locn_geometry', false)
-  renameField('solr_geom', 'dcat_bbox')
-  renameField('', 'dcat_centroid')
-  renameField('', 'dct_relation_sm')
-  renameField('', 'pcdm_memberOf_sm')
-  renameField('', 'dct_isPartOf_sm')
-  renameField('dc_source_sm', 'dct_source_sm')
-  renameField('', 'dct_isVersionOf_sm')
-  renameField('', 'dct_replaces_sm')
-  renameField('', 'dct_isReplacedBy_sm')
-  renameField('', 'dct_rights_sm')
-  renameField('', 'dct_rightsHolder_sm')
-  renameField('', 'dct_license_sm')
-  setAccessRights()
-  renameField('dc_format_s', 'dct_format_s')
-  renameField('cugir_filesize_s', 'gbl_fileSize_s')
-  renameField('layer_id_s', 'gbl_wxsIdentifier_s')
-  setReferences()
-  renameField('layer_modified_dt', 'gbl_mdModified_dt')
-  setVersion()
-  renameField('suppressed_b', 'gbl_suppressed_b')
-  renameField('', 'gbl_georeferenced_b')
-  copyExtraFields()
-  checkMultiValues()
-  return r2
 }
