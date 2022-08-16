@@ -305,8 +305,6 @@ function gbl2aardvark (r1) {
       if (bbox !== undefined) {
         cr.bbox = bbox
       }
-
-      cr.count = 1
       collections[c] = cr
     } else {
       // collection record exists, so modify with info from r1
@@ -338,7 +336,6 @@ function gbl2aardvark (r1) {
       cr = addNewValues(cr, 'dct_temporal_sm')
       cr = addNewValues(cr, 'gbl_indexYear_im')
       cr = addNewValues(cr, 'dct_spatial_sm')
-      cr.count++
     }
   }
 
