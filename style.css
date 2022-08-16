@@ -65,6 +65,11 @@ button:disabled {
   opacity: 0.3;
 }
 
+code {
+  color: #0f0;
+  padding: 0 0.4em;
+}
+
 #inputFiles {
   display: none;
 }
