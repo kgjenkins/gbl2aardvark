@@ -206,11 +206,11 @@ function gbl2aardvark (r1) {
   renameField('dc_subject_sm', 'dct_subject_sm')
   setTheme()
   copyField('dcat_keyword_sm')
-  renameField('dct_temporal_sm', 'dct_temporal_sm')
-  renameField('dct_issued_s', 'dct_issued_s')
+  copyField('dct_temporal_sm')
+  copyField('dct_issued_s')
   renameField('solr_year_i', 'gbl_indexYear_im')
   setDateRange()
-  renameField('dct_spatial_sm', 'dct_spatial_sm')
+  copyField('dct_spatial_sm')
   renameField('solr_geom', 'locn_geometry')
   renameField('solr_geom', 'dcat_bbox')
   copyField('dcat_centroid')
@@ -297,12 +297,10 @@ function gbl2aardvark (r1) {
       return
     }
     if (collections[c] === undefined) {
-      // create new collection record
-      let cr = {}
+      // create new collection record, starting with a copy of r2
+      // (we stringify/parse so that changes to cr don't alter r2)
+      const cr = JSON.parse(JSON.stringify(r2))
 
-      // starting with copy of r2
-      Object.assign(cr, r2)
-      
       // generate a collection ID
       cr.id = collectionId(c)
       r2.dct_isPartOf_sm = cr.id
@@ -312,6 +310,7 @@ function gbl2aardvark (r1) {
       cr.dct_title_s = c
       cr.dct_description_sm = ['EDIT ME to describe the whole collection -- ' + cr.dct_description_sm]
       cr.gbl_resourceClass_sm = 'Collections'
+      delete cr.dct_issued_s
       delete cr.gbl_fileSize_s
       delete cr.gbl_wxsIdentifier_s
       const d = new Date
@@ -344,6 +343,7 @@ function gbl2aardvark (r1) {
           cr.bbox[3] = bbox[3]
         }
         cr.dcat_bbox = `ENVELOPE(${cr.bbox.join(', ')})`
+        cr.locn_geometry = cr.dcat_bbox
       }
       cr = addNewValues(cr, 'dct_language_sm')
       cr = addNewValues(cr, 'dct_creator_sm')
