@@ -313,6 +313,7 @@ function gbl2aardvark (r1) {
       delete cr.dct_issued_s
       delete cr.gbl_fileSize_s
       delete cr.gbl_wxsIdentifier_s
+      delete cr.dct_references_s
       const d = new Date
       cr.gbl_mdModified_dt = d.toISOString()
       delete cr.dct_source_sm
