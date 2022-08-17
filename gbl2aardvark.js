@@ -5,7 +5,7 @@ const inputs = []
 
 // collections will contain automatically-generated parent records that
 // will be referenced by isPartOf
-const collections = {}
+let collections = {}
 
 document.addEventListener('DOMContentLoaded', init)
 
@@ -137,21 +137,24 @@ function processInput () {
     return
   }
 
-  const count = (j.length > 1) ? j.length : 1
+  if (j.length === undefined) {
+    // put single records into an array
+    j = [j]
+  }
+
+  const count = j.length
 
   // display number of records
   document.getElementById('count').innerHTML = count + ' record' + (count === 1 ? '' : 's') + " <button id='reset'>x</button>"
   document.getElementById('reset').addEventListener('click', resetInput)
 
-  // convert each record from gbl 1.0 to aardvark
-  if (count > 1) {
-    for (let i = 0; i < j.length; i++) {
-      j[i] = gbl2aardvark(j[i])
-    }
-  } else {
-    j = gbl2aardvark(j)
-  }
+  collections = {}
 
+  // convert each record from gbl 1.0 to aardvark
+  for (let i = 0; i < j.length; i++) {
+    j[i] = gbl2aardvark(j[i])
+  }
+  
   // add any new collection records
   for (let c in collections) {
     let cr = collections[c]
@@ -196,6 +199,7 @@ function gbl2aardvark (r1) {
   renameField('dc_language_sm', 'dct_language_sm')
   renameField('dc_creator_sm', 'dct_creator_sm')
   renameField('dc_publisher_s', 'dct_publisher_sm')
+  renameField('dc_publisher_sm', 'dct_publisher_sm')
   renameField('dct_provenance_s', 'schema_provider_s')
   setResourceClass()
   setResourceType()
@@ -228,9 +232,12 @@ function gbl2aardvark (r1) {
   setVersion()
   renameField('suppressed_b', 'gbl_suppressed_b')
   copyField('gbl_georeferenced_b')
-  setIsPartOf()
+
+  // the following order is important
+  see('dct_isPartOf_sm')
   copyExtraFields()
   r2 = checkValues(r2)
+  setIsPartOf()
   return r2
 
   function see(g) {
@@ -270,6 +277,7 @@ function gbl2aardvark (r1) {
   function setAccessRights () {
     // default to public, unless otherwise specified
     r2.dct_accessRights_s = r1.dc_rights_s || 'Public'
+    see('dc_rights_s')
   }
 
   function setDateRange () {
@@ -284,22 +292,32 @@ function gbl2aardvark (r1) {
 
   function setIsPartOf () {
     let c = r1.dct_isPartOf_sm
+    see('dct_isPartOf_sm')
     if (c === undefined) {
       return
     }
     if (collections[c] === undefined) {
       // create new collection record
       let cr = {}
+
       // starting with copy of r2
       Object.assign(cr, r2)
-      // and modifing/removing some fields
+      
+      // generate a collection ID
       cr.id = collectionId(c)
+      r2.dct_isPartOf_sm = cr.id
+
+      // and modifing/removing some other fields
       delete cr.dct_identifier_sm
       cr.dct_title_s = c
       cr.dct_description_sm = ['EDIT ME to describe the whole collection -- ' + cr.dct_description_sm]
       cr.gbl_resourceClass_sm = 'Collections'
       delete cr.gbl_fileSize_s
+      delete cr.gbl_wxsIdentifier_s
+      const d = new Date
+      cr.gbl_mdModified_dt = d.toISOString()
       delete cr.dct_source_sm
+      delete cr.dct_isPartOf_sm
 
       let bbox = parseBbox(cr.dcat_bbox)
       if (bbox !== undefined) {
@@ -312,20 +330,21 @@ function gbl2aardvark (r1) {
 
       // expand bbox to includ new item
       let bbox = parseBbox(r2.dcat_bbox)
-      if (bbox[0] > cr.bbox[0]) {
-        cr.bbox[0] = bbox[0]
+      if (bbox) {
+        if (bbox[0] > cr.bbox[0]) {
+          cr.bbox[0] = bbox[0]
+        }
+        if (bbox[1] < cr.bbox[1]) {
+          cr.bbox[1] = bbox[1]
+        }
+        if (bbox[2] > cr.bbox[2]) {
+          cr.bbox[2] = bbox[2]
+        }
+        if (bbox[3] < cr.bbox[3]) {
+          cr.bbox[3] = bbox[3]
+        }
+        cr.dcat_bbox = `ENVELOPE(${cr.bbox.join(', ')})`
       }
-      if (bbox[1] < cr.bbox[1]) {
-        cr.bbox[1] = bbox[1]
-      }
-      if (bbox[2] > cr.bbox[2]) {
-        cr.bbox[2] = bbox[2]
-      }
-      if (bbox[3] < cr.bbox[3]) {
-        cr.bbox[3] = bbox[3]
-      }
-      cr.dcat_bbox = `ENVELOPE(${cr.bbox.join(', ')})`
-
       cr = addNewValues(cr, 'dct_language_sm')
       cr = addNewValues(cr, 'dct_creator_sm')
       cr = addNewValues(cr, 'dct_publisher_sm')
@@ -365,6 +384,7 @@ function gbl2aardvark (r1) {
   
   function setReferences () {
     let ref = r1.dct_references_s
+    see('dct_references_s')
     if (ref === undefined) {
       return
     }
@@ -404,7 +424,7 @@ function gbl2aardvark (r1) {
     }
     ref['http://schema.org/downloadUrl'] = downloads
     r2.dct_references_s = JSON.stringify(ref)
-    delete r1.dct_references_s
+    see('dct_references_s')
   }
 
   function setResourceClass () {
@@ -418,7 +438,11 @@ function gbl2aardvark (r1) {
       'interactive resource': 'Websites',
       'physical object': 'Other'
     }
-    const v1 = r1.dc_type_s
+    let v1 = r1.dc_type_s
+    if (v1 === undefined) {
+      v1 = r1.dc_type_sm
+    }
+
     let v2
     try {
       // use lowercase for case-insensitive matching
@@ -429,7 +453,8 @@ function gbl2aardvark (r1) {
       v2 = 'EDIT ME -- this record had dc_type_s = ' + v1
     }
     r2.gbl_resourceClass_sm = [v2]
-    delete r1.dc_type_s
+    see('dc_type_s')
+    see('dc_type_sm')
   }
 
   function setResourceType () {
@@ -456,7 +481,7 @@ function gbl2aardvark (r1) {
     if (v2 !== undefined) {
       r2.gbl_resourceType_sm = [v2]
     }
-    delete r1.layer_geom_type_s
+    see('layer_geom_type_s')
   }
 
   function setTheme () {
@@ -513,7 +538,7 @@ function gbl2aardvark (r1) {
       themes = []
     }
 
-    const subjects = r1.dct_subject_sm
+    const subjects = r1.dc_subject_sm
     if (subjects && subjects.length > 0) {
       for (let si = 0; si < subjects.length; si++) {
         const subject = subjects[si].toLowerCase()
@@ -536,7 +561,7 @@ function gbl2aardvark (r1) {
           themes.push(t)
         }
       }
-      delete r1.cugir_category_sm
+      see('cugir_category_sm')
     }
     if (themes.length > 0) {
       r2.dcat_theme_sm = themes
@@ -545,7 +570,7 @@ function gbl2aardvark (r1) {
 
   function setVersion () {
     r2.gbl_mdVersion_s = 'Aardvark'
-    delete r1.geoblacklight_version
+    see('geoblacklight_version')
   }
 
   function copyExtraFields () {
@@ -561,9 +586,9 @@ function gbl2aardvark (r1) {
     for (const p in r) {
       const v = r[p]
 
-      // check for _sm suffix, and make sure those are arrays
+      // check for _sm or _im suffix, and make sure those are arrays
       const suffix = p.split('_').slice(-1)[0]
-      if (suffix === 'sm' && !Array.isArray(v)) {
+      if ((suffix === 'sm' || suffix === 'im') && !Array.isArray(v)) {
         r[p] = [v]
       }
 
