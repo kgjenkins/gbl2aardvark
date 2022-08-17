@@ -364,7 +364,11 @@ function gbl2aardvark (r1) {
     const v = r2[f]
     if (v !== undefined) {
       for (let i = 0; i < v.length; i++) {
-        if (cr[f].indexOf(v[i]) === -1) {
+        if (cr[f] === undefined) {
+          // field f doesn't yet exist
+          cr[f] = [v]
+        } else if (cr[f].indexOf(v[i]) === -1) {
+          // value v doesn't yet exist in this field
           cr[f].push(v[i])
           cr[f] = cr[f].sort()
         }
@@ -525,7 +529,7 @@ function gbl2aardvark (r1) {
 
       'property': 'propert.*,planningCadastre,land use,zoning,cadastr.*,land ownership',
 
-      'society': 'society,cultures?,settlements?,anthropology,archaeology,education.*,tradition.*,manners,customs,demograph.*,recreation.*,social,crimes?,justice,census.*,sociolog.*,parks,elections?,voting,legislat.*',
+      'society': 'society,cultures?,settlements?,anthropology,archaeology,education.*,tradition.*,manners,customs,demograph.*,recreation.*,social,crimes?,justice,census.*,sociolog.*,parks,elections?,voting,legislat.*,religion',
 
       'structure': 'structur.*,man-made,construction.*,buildings?,museums?,church.*,factor(y|ies),hous(e|ing),monuments?,shop.*,towers?,parking',
 
