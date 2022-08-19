@@ -161,6 +161,25 @@ function processInput () {
 
     // remove temp field
     delete cr.bbox
+
+    // clean up dct_accessRights_s
+    // in cases of "Public, Restricted", or "Restricted, Public"
+    // we'll call the collection "Public" as long as at least one child is "Public"
+    if (cr.dct_accessRights_s.indexOf('Public') > -1) {
+      cr.dct_accessRights_s = 'Public'
+    }
+
+    // clean up dct_format_s
+    // omit field if it contains more than one format
+    if (cr.dct_format_s.indexOf(',') > -1) {
+      delete cr.dct_format_s
+    }
+
+    // clean up gbl_suppressed_b
+    // omit field if false
+    if (!cr.gbl_suppressed_b) {
+      delete cr.gbl_suppressed_b
+    }
     
     j.push(cr)
   }
@@ -316,8 +335,18 @@ function gbl2aardvark (r1) {
       delete cr.dct_references_s
       const d = new Date
       cr.gbl_mdModified_dt = d.toISOString()
+
+      // omit these fields, even though they generally shouldn't appear in GBL1.0 records
+      delete cr.pcdm_memberOf_sm
+      delete cr.dct_isPartOf_sm // this contained the title of the current collection record
       delete cr.dct_source_sm
-      delete cr.dct_isPartOf_sm
+      delete cr.dct_isVersionOf_sm
+      delete cr.dct_replaces_sm
+      delete cr.dct_isReplacedBy_sm
+      delete cr.dct_rights_sm
+      delete cr.dct_rightsHolder_sm
+      delete cr.dct_license_sm
+      delete cr.gbl_georeferenced_b
 
       let bbox = parseBbox(cr.dcat_bbox)
       if (bbox !== undefined) {
@@ -356,6 +385,9 @@ function gbl2aardvark (r1) {
       cr = addNewValues(cr, 'dct_temporal_sm')
       cr = addNewValues(cr, 'gbl_indexYear_im')
       cr = addNewValues(cr, 'dct_spatial_sm')
+      cr = appendNewStringValues(cr, 'dct_accessRights_s')
+      cr = appendNewStringValues(cr, 'dct_format_s')
+      cr = andNewValue(cr, 'gbl_suppressed_b')
     }
   }
 
@@ -375,6 +407,29 @@ function gbl2aardvark (r1) {
       }
     }
     return cr
+  }
+
+  function appendNewStringValues(cr, f) {
+    // append any new values of field f to collection record cr
+    // (this is for single-value fields, so we concatenate within the single string value)
+    const v = r2[f]
+    if (v !== undefined) {
+      for (let i = 0; i < v.length; i++) {
+        if (cr[f] === undefined) {
+          // field f doesn't yet exist
+          cr[f] = v
+        } else if (cr[f].indexOf(v[i]) === -1) {
+          // value v doesn't yet exist in this field
+          cr[f] += ', ' + v
+        }
+      }
+    }
+    return cr
+  }
+
+  function andNewValue(cr, f) {
+    // AND the value of field f to the existing boolean value of collection record cr
+    cr[f] = (cr[f] & r2[f]) ? true : false
   }
 
   function collectionId (c) {
