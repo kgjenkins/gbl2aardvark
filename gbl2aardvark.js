@@ -253,7 +253,7 @@ function gbl2aardvark (r1) {
   copyField('gbl_georeferenced_b')
 
   // the following order is important
-  see('dct_isPartOf_sm')
+  see('dct_isPartOf_sm') // so we don't copy the original value
   copyExtraFields()
   r2 = checkValues(r2)
   setIsPartOf()
@@ -310,84 +310,91 @@ function gbl2aardvark (r1) {
   }
 
   function setIsPartOf () {
-    let c = r1.dct_isPartOf_sm
+    let cs = r1.dct_isPartOf_sm
     see('dct_isPartOf_sm')
-    if (c === undefined) {
+    if (cs === undefined || cs.length === 0) {
       return
     }
-    if (collections[c] === undefined) {
-      // create new collection record, starting with a copy of r2
-      // (we stringify/parse so that changes to cr don't alter r2)
-      const cr = JSON.parse(JSON.stringify(r2))
+    for (let i = 0; i < cs.length; i++) {
+      let c = cs[i]
+      if (collections[c] === undefined) {
+        // create new collection record, starting with a copy of r2
+        // (we stringify/parse so that changes to cr don't alter r2)
+        const cr = JSON.parse(JSON.stringify(r2))
 
-      // generate a collection ID
-      cr.id = collectionId(c)
-      r2.dct_isPartOf_sm = cr.id
+        // generate a collection ID
+        cr.id = collectionId(c)
+        r2.dct_isPartOf_sm = cr.id
 
-      // and modifing/removing some other fields
-      delete cr.dct_identifier_sm
-      cr.dct_title_s = c
-      cr.dct_description_sm = ['EDIT ME to describe the whole collection -- ' + cr.dct_description_sm]
-      cr.gbl_resourceClass_sm = 'Collections'
-      delete cr.dct_issued_s
-      delete cr.gbl_fileSize_s
-      delete cr.gbl_wxsIdentifier_s
-      delete cr.dct_references_s
-      const d = new Date
-      cr.gbl_mdModified_dt = d.toISOString()
+        // and modifing/removing some other fields
+        delete cr.dct_identifier_sm
+        cr.dct_title_s = c
+        cr.dct_description_sm = ['EDIT ME to describe the whole collection -- ' + cr.dct_description_sm]
+        cr.gbl_resourceClass_sm = 'Collections'
+        delete cr.dct_issued_s
+        delete cr.gbl_fileSize_s
+        delete cr.gbl_wxsIdentifier_s
+        delete cr.dct_references_s
+        const d = new Date
+        cr.gbl_mdModified_dt = d.toISOString()
 
-      // omit these fields, even though they generally shouldn't appear in GBL1.0 records
-      delete cr.pcdm_memberOf_sm
-      delete cr.dct_isPartOf_sm // this contained the title of the current collection record
-      delete cr.dct_source_sm
-      delete cr.dct_isVersionOf_sm
-      delete cr.dct_replaces_sm
-      delete cr.dct_isReplacedBy_sm
-      delete cr.dct_rights_sm
-      delete cr.dct_rightsHolder_sm
-      delete cr.dct_license_sm
-      delete cr.gbl_georeferenced_b
+        // omit these fields, even though they generally shouldn't appear in GBL1.0 records
+        delete cr.pcdm_memberOf_sm
+        delete cr.dct_isPartOf_sm // this contained the title of the current collection record
+        delete cr.dct_source_sm
+        delete cr.dct_isVersionOf_sm
+        delete cr.dct_replaces_sm
+        delete cr.dct_isReplacedBy_sm
+        delete cr.dct_rights_sm
+        delete cr.dct_rightsHolder_sm
+        delete cr.dct_license_sm
+        delete cr.gbl_georeferenced_b
 
-      let bbox = parseBbox(cr.dcat_bbox)
-      if (bbox !== undefined) {
-        cr.bbox = bbox
+        let bbox = parseBbox(cr.dcat_bbox)
+        if (bbox !== undefined) {
+          cr.bbox = bbox
+        }
+        collections[c] = cr
+      } else {
+        // collection record exists, so we'll modify it with info from r1
+        let cr = collections[c]
+        console.log(cr)
+
+        // expand bbox to includ new item
+        let bbox = parseBbox(r2.dcat_bbox)
+        if (bbox) {
+          if (bbox[0] > cr.bbox[0]) {
+            cr.bbox[0] = bbox[0]
+          }
+          if (bbox[1] < cr.bbox[1]) {
+            cr.bbox[1] = bbox[1]
+          }
+          if (bbox[2] > cr.bbox[2]) {
+            cr.bbox[2] = bbox[2]
+          }
+          if (bbox[3] < cr.bbox[3]) {
+            cr.bbox[3] = bbox[3]
+          }
+          cr.dcat_bbox = `ENVELOPE(${cr.bbox.join(', ')})`
+          cr.locn_geometry = cr.dcat_bbox
+        }
+        cr = addNewValues(cr, 'dct_language_sm')
+        cr = addNewValues(cr, 'dct_creator_sm')
+        cr = addNewValues(cr, 'dct_publisher_sm')
+        cr = addNewValues(cr, 'gbl_resourceType_sm')
+        cr = addNewValues(cr, 'dct_subject_sm')
+        cr = addNewValues(cr, 'dcat_theme_sm')
+        cr = addNewValues(cr, 'dcat_keyword_sm')
+        cr = addNewValues(cr, 'dct_temporal_sm')
+        cr = addNewValues(cr, 'gbl_indexYear_im')
+        cr = addNewValues(cr, 'dct_spatial_sm')
+        cr = appendNewStringValues(cr, 'dct_accessRights_s')
+        cr = appendNewStringValues(cr, 'dct_format_s')
+        cr = andNewValue(cr, 'gbl_suppressed_b')
+
+        // link r2 to the collection record
+        r2.dct_isPartOf_sm = cr.id
       }
-      collections[c] = cr
-    } else {
-      // collection record exists, so modify with info from r1
-      let cr = collections[c]
-
-      // expand bbox to includ new item
-      let bbox = parseBbox(r2.dcat_bbox)
-      if (bbox) {
-        if (bbox[0] > cr.bbox[0]) {
-          cr.bbox[0] = bbox[0]
-        }
-        if (bbox[1] < cr.bbox[1]) {
-          cr.bbox[1] = bbox[1]
-        }
-        if (bbox[2] > cr.bbox[2]) {
-          cr.bbox[2] = bbox[2]
-        }
-        if (bbox[3] < cr.bbox[3]) {
-          cr.bbox[3] = bbox[3]
-        }
-        cr.dcat_bbox = `ENVELOPE(${cr.bbox.join(', ')})`
-        cr.locn_geometry = cr.dcat_bbox
-      }
-      cr = addNewValues(cr, 'dct_language_sm')
-      cr = addNewValues(cr, 'dct_creator_sm')
-      cr = addNewValues(cr, 'dct_publisher_sm')
-      cr = addNewValues(cr, 'gbl_resourceType_sm')
-      cr = addNewValues(cr, 'dct_subject_sm')
-      cr = addNewValues(cr, 'dcat_theme_sm')
-      cr = addNewValues(cr, 'dcat_keyword_sm')
-      cr = addNewValues(cr, 'dct_temporal_sm')
-      cr = addNewValues(cr, 'gbl_indexYear_im')
-      cr = addNewValues(cr, 'dct_spatial_sm')
-      cr = appendNewStringValues(cr, 'dct_accessRights_s')
-      cr = appendNewStringValues(cr, 'dct_format_s')
-      cr = andNewValue(cr, 'gbl_suppressed_b')
     }
   }
 
@@ -430,6 +437,7 @@ function gbl2aardvark (r1) {
   function andNewValue(cr, f) {
     // AND the value of field f to the existing boolean value of collection record cr
     cr[f] = (cr[f] & r2[f]) ? true : false
+    return cr
   }
 
   function collectionId (c) {
