@@ -18,3 +18,6 @@
 
 ## dct_identifier_sm (Recommended)
 - move this to the top, too?
+
+## gbl_dateRange_drsim
+- should this have multiplicity 0-1 (instead of 0-\*)?
