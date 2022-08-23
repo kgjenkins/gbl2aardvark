@@ -28,3 +28,6 @@
 
 ## gbl_indexYear_im
 - obligation=recommended, but multiplicity=1-*
+
+## gbl_mdModified_dt
+- "XML Schema dataTime format" -- can we say ["W3C Date and Time Format"](https://www.w3.org/TR/NOTE-datetime) and also allow dates without times?
