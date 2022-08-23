@@ -21,3 +21,6 @@
 
 ## gbl_dateRange_drsim
 - should this have multiplicity 0-1 (instead of 0-\*)?
+
+## dct_description_sm
+- why would this field have multiplicity 0-\* ?  Is there a use case for multiple descriptions?
