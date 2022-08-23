@@ -15,6 +15,7 @@
 
 ## id (Required)
 - move this to the top?
+- "globally unique value" -- clarify that it must be "locally unique", but suggest using institution prefix to help ensure "globally unique" across GBL site to facilitate record sharing
 
 ## dct_identifier_sm (Recommended)
 - move this to the top, too?
@@ -24,3 +25,6 @@
 
 ## dct_description_sm
 - why would this field have multiplicity 0-\* ?  Is there a use case for multiple descriptions?
+
+## gbl_indexYear_im
+- obligation=recommended, but multiplicity=1-*
