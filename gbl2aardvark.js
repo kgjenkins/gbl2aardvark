@@ -441,8 +441,11 @@ function gbl2aardvark (r1) {
   }
 
   function collectionId (c) {
-    // TODO allow user-defined prefix, or a naming scheme based on the collection name c 
-    return "generated-collection-" + Math.floor(Math.random()*1000000000000).toString(36)
+    // TODO allow user-defined prefix, or a naming scheme based on the collection name c
+    // return "generated-collection-" + Math.floor(Math.random()*1000000000000).toString(36)
+    let provider = r2.schema_provider_s
+    let s = `${provider}-collection-${c}`.replace(/[^\w0-9]+/g, '-').trim('-').toLowerCase()
+    return s
   }
 
   function parseBbox (s) {
