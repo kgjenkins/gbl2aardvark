@@ -220,6 +220,7 @@ function gbl2aardvark (r1) {
   renameField('dc_publisher_s', 'dct_publisher_sm')
   renameField('dc_publisher_sm', 'dct_publisher_sm')
   renameField('dct_provenance_s', 'schema_provider_s')
+  setProvider()
   setResourceClass()
   setResourceType()
   renameField('dc_subject_sm', 'dct_subject_sm')
@@ -398,6 +399,13 @@ function gbl2aardvark (r1) {
     }
   }
 
+  function setProvider () {
+    let p = r2.schema_provider_s
+    if (!p && r2.id.slice(0,5) === 'cugir') {
+      r2.schema_provider_s = 'Cornell University'
+    }
+  }
+
   function addNewValues(cr, f) {
     // add any new values of field f to collection record cr
     const v = r2[f]
@@ -444,6 +452,9 @@ function gbl2aardvark (r1) {
     // TODO allow user-defined prefix, or a naming scheme based on the collection name c
     // return "generated-collection-" + Math.floor(Math.random()*1000000000000).toString(36)
     let provider = r2.schema_provider_s
+    if (provider === 'Cornell University') {
+      provider = 'cugir'
+    }
     let s = `${provider}-collection-${c}`.replace(/[^\w0-9]+/g, '-').trim('-').toLowerCase()
     return s
   }
