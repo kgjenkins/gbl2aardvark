@@ -2,7 +2,11 @@
 
 This repo contains a simple javascript application that lets you easily convert [GeoBlacklight 1.0](https://opengeometadata.org/docs/gbl-1.0) records to the new [OpenGeoMetadata Aardvark schema](https://opengeometadata.org/docs/ogm-aardvark).
 
-You can select a local file or files, or simply paste your json records (single records or an array of records).
+You can select a local file or files, or simply paste your json records (a single record, or an array of records).
+
+
+
+## Collection records
 
 If your records used the old `dct_isPartOf_sm` field, containing a text string of a collection name, this tool automatically creates the new "Collection" records that are required by Aardvark, and links to them from the child records.  The new collection records will appear at the end of the output json.  Here's a chart of how each field is handled when generating the collection records:
 
