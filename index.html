@@ -14,9 +14,10 @@
 
 <p>Select your own local geoblacklight.json file to convert, or try using the GeoBlacklight fixtures (TEST) or Cornell's records (CUGIR).</p>
 
+<p><b>You will most certainly want to review and edit the generated records!</b>  Specifically, look for the following:</p>
 <ul>
   <li>If any output fields start with "EDIT ME", that means that the input could not be unambiguously converted to Aardvark.</li>
-  <li>If your input records used the old <code>dct_isPartOf_sm</code> field, then new collection records are automatically created for Aardvark -- these will appear at the end of the output records.  <a href="https://github.com/kgjenkins/gbl2aardvark/blob/main/README.md">more details</a></li>
+  <li>If your input records used the old <code>dct_isPartOf_sm</code> field, then new collection records are automatically created for Aardvark -- these will appear at the end of the output records, and tend to aggregate more info than you will really want to include in the collection record.  See <a href="https://github.com/kgjenkins/gbl2aardvark/blob/main/README.md">more details</a></li>
 </ul>
 
 <p>Please report any issues here: <a href="https://github.com/kgjenkins/gbl2aardvark/issues">https://github.com/kgjenkins/gbl2aardvark/issues</a></p>
