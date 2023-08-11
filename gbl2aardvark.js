@@ -400,8 +400,7 @@ function gbl2aardvark (r1) {
   }
 
   function setProvider () {
-    let p = r2.schema_provider_s
-    if (!p && r2.id.slice(0,5) === 'cugir') {
+    if (r2.schema_provider_s === 'Cornell') {
       r2.schema_provider_s = 'Cornell University'
     }
   }
