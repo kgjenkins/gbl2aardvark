@@ -455,7 +455,7 @@ function gbl2aardvark (r1) {
     if (provider === 'Cornell University') {
       provider = 'cugir'
     }
-    let s = `${provider}-collection-${c}`.replace(/[^\w0-9]+/g, '-').trim('-').toLowerCase()
+    let s = `${provider}-collection-${c}`.replace(/[^\w0-9]+/g, '-').replace(/-+$/, '').toLowerCase()
     return s
   }
 
