@@ -248,7 +248,7 @@ function gbl2aardvark (r1) {
   renameField('cugir_filesize_s', 'gbl_fileSize_s')
   renameField('layer_id_s', 'gbl_wxsIdentifier_s')
   setReferences()
-  renameField('layer_modified_dt', 'gbl_mdModified_dt')
+  setModified()
   setVersion()
   renameField('suppressed_b', 'gbl_suppressed_b')
   copyField('gbl_georeferenced_b')
@@ -462,6 +462,13 @@ function gbl2aardvark (r1) {
   function parseBbox (s) {
     let m = s.match(/ENVELOPE\(\s*([\d.-]+),\s*([\d.-]+),\s*([\d.-]+),\s*([\d.-]+)/)
     return m.slice(1)
+  }
+
+  function setModified () {
+    // Set the metadata modified date to current date time (omitting fractional seconds)
+    const d = new Date
+    r2.gbl_mdModified_dt = d.toISOString().replace(/\..*Z/, 'Z')
+    see('layer_modified_dt')
   }
   
   function setReferences () {
