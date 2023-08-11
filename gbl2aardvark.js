@@ -572,47 +572,47 @@ function gbl2aardvark (r1) {
     // A keyword must match word boundaries unless it ends with .*
     // For example "bus" will not match "business".
     const keywords = {
-      'agriculture': 'agricultur.*,farm.*,cultiva.*,irrigation,aquaculture,plantation.*,herding,crop.*,livestock',
+      'Agriculture': 'agricultur.*,farm.*,cultiva.*,irrigation,aquaculture,plantation.*,herding,crop.*,livestock',
 
-      'biology': 'biolog.*,biota,flora,fauna,wildlife,vegetation,ecolog.*,wilderness,sealife,habitat,bird.*,mammal.*,fish.*,tree.*,flower.*',
+      'Biology': 'biolog.*,biota,flora,fauna,wildlife,vegetation,ecolog.*,wilderness,sealife,habitat,bird.*,mammal.*,fish.*,tree.*,flower.*',
 
-      'boundaries': 'boundar.*,political,administrative',
+      'Boundaries': 'boundar.*,political,administrative',
 
-      'climate': 'climat.*,climatologymeteorologyatmosphere,atmospher.*,cloud cover,weather,precipitation,snow,ice,glacier.*,tornado.*',
+      'Climate': 'climat.*,climatologymeteorologyatmosphere,atmospher.*,cloud cover,weather,precipitation,snow,ice,glacier.*,tornado.*',
 
-      'economy': 'econom.*,employ.*,business.*,labou?r,sales?,revenue,commerc.*,industr.*,tourism,forestry,fisher.*',
+      'Economy': 'econom.*,employ.*,business.*,labou?r,sales?,revenue,commerc.*,industr.*,tourism,forestry,fisher.*',
 
-      'elevation': 'elevation,altitude,dem,bathymetr.*,lidar,slope,topograph.*',
+      'Elevation': 'elevation,altitude,dem,bathymetr.*,lidar,slope,topograph.*',
 
-      'environment': 'environment.*,conservation,pollut.*,waste,natur.*,landscape',
+      'Environment': 'environment.*,conservation,pollut.*,waste,natur.*,landscape',
 
-      'events': 'events?,disasters?,concerts?,races?,protests?,crime,arrests?,accidents?,cases?',
+      'Events': 'events?,disasters?,concerts?,races?,protests?,crime,arrests?,accidents?,cases?',
 
-      'geology': 'geolog.*,geoscientificInformation,earth science,geophysic.*,minerals?,rocks?,earthquakes?,volcane*,landslides?,gravit.*,soils?,permafrost,erosion',
+      'Geology': 'geolog.*,geoscientificInformation,earth science,geophysic.*,minerals?,rocks?,earthquakes?,volcane*,landslides?,gravit.*,soils?,permafrost,erosion',
 
-      'health': 'health,human ecology,safety,diseases?,illness.*,hygiene,substance abuse,hospitals?,doctors?',
+      'Health': 'health,human ecology,safety,diseases?,illness.*,hygiene,substance abuse,hospitals?,doctors?',
 
-      'imagery': 'image.*,aerial,photo.*,oblique,.*views?',
+      'Imagery': 'image.*,aerial,photo.*,oblique,.*views?',
 
-      'inland waters': 'waters?,inlandWaters,drainages?,rivers?,streams?,glaciers?,lakes?,dams?,floods?,hydrograph.*',
+      'Inland Waters': 'waters?,inlandWaters,drainages?,rivers?,streams?,glaciers?,lakes?,dams?,floods?,hydrograph.*',
 
-      'land cover': 'land cover,landcover,forests?,wetlands?,impervious.*,canop.*',
+      'Land Cover': 'land cover,landcover,forests?,wetlands?,impervious.*,canop.*',
 
-      'location': 'location.*,position.*,address.*,geodetic,control points?,postal,place names?,placenames?,gazetteers?,zip\\s?codes?',
+      'Location': 'location.*,position.*,address.*,geodetic,control points?,postal,place names?,placenames?,gazetteers?,zip\\s?codes?',
 
-      'military': 'militar.*,intelligenceMilitary,barracks',
+      'Military': 'militar.*,intelligenceMilitary,barracks',
 
-      'oceans': 'ocean.*,tides?,tidal,waves?,coast.*,reefs?',
+      'Oceans': 'ocean.*,tides?,tidal,waves?,coast.*,reefs?',
 
-      'property': 'propert.*,planningCadastre,land use,zoning,cadastr.*,land ownership',
+      'Property': 'propert.*,planningCadastre,land use,zoning,cadastr.*,land ownership',
 
-      'society': 'society,cultures?,settlements?,anthropology,archaeology,education.*,tradition.*,manners,customs,demograph.*,recreation.*,social,crimes?,justice,census.*,sociolog.*,parks,elections?,voting,legislat.*,religion',
+      'Society': 'society,cultures?,settlements?,anthropology,archaeology,education.*,tradition.*,manners,customs,demograph.*,recreation.*,social,crimes?,justice,census.*,sociolog.*,parks,elections?,voting,legislat.*,religion',
 
-      'structure': 'structur.*,man-made,construction.*,buildings?,museums?,church.*,factor(y|ies),hous(e|ing),monuments?,shop.*,towers?,parking',
+      'Structure': 'structur.*,man-made,construction.*,buildings?,museums?,church.*,factor(y|ies),hous(e|ing),monuments?,shop.*,towers?,parking',
 
-      'transportation': 'transport.*,roads?,streets?,airports?,airstrips?,shipping,tunnels?,nautical,vehic.*,vessels?,aeronaut.*,rail.*,transit,bus,buses,subways?',
+      'Transportation': 'transport.*,roads?,streets?,airports?,airstrips?,shipping,tunnels?,nautical,vehic.*,vessels?,aeronaut.*,rail.*,transit,bus,buses,subways?',
 
-      'utilities': 'utilit.*,utilitiesCommunication,energy,communicat.*,sewers?,broadband,phones?,telephon.*,internet'
+      'Utilities': 'utilit.*,utilitiesCommunication,energy,communicat.*,sewers?,broadband,phones?,telephon.*,internet'
     }
 
     let themes = r1.dcat_theme_sm
@@ -635,9 +635,9 @@ function gbl2aardvark (r1) {
     // add any cugir categories that we don't already have in themes
     if (r1.cugir_category_sm) {
       for (let i = 0; i < r1.cugir_category_sm.length; i++) {
-        let t = r1.cugir_category_sm[i]
-        if (t === 'landcover') {
-          t = 'land cover'
+        let t = titleCase(r1.cugir_category_sm[i])
+        if (t === 'Landcover') {
+          t = 'Land Cover'
         }
         if (themes.indexOf(t) === -1) {
           themes.push(t)
@@ -681,4 +681,13 @@ function gbl2aardvark (r1) {
     }
     return r
   }
+}
+
+function titleCase (s) {
+  let words = s.split(' ')
+  for (let i = 0; i < words.length; i++) {
+    let w = words[i]
+    words[i] = w[0].toUpperCase() + w.slice(1).toLowerCase()
+  }
+  return words.join(' ')
 }
