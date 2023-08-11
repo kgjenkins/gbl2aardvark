@@ -1,13 +1,17 @@
 # Notes, questions, and observations
 
+## dct_alternative_sm
+- why not just allow title to be multivalued?
+
 ## gbl_resourceClass_sm (Required)
 - why are these plural?
 
 ## dcat_theme_sm (Optional)
-- should these be capitalized, or lowercase?
+- values should be capitalized
 
 ## dcat_centroid
 - why is this a string `"46.4218,-94.087"` instead of an array of numbers? `[46.4218,-94.087]`
+- if a string -- should the field name have a `_s` suffix?
 
 ## gbl_wxsIdentifier_s (Conditional)
 - why isn't this stored within dct_references? (where WMS/WFS are)
@@ -31,9 +35,6 @@
 
 ## gbl_indexYear_im
 - obligation=recommended, but multiplicity=1-*
-
-## gbl_mdModified_dt
-- "XML Schema dataTime format" -- can we say ["W3C Date and Time Format"](https://www.w3.org/TR/NOTE-datetime) and also allow dates without times?
 
 ## dct_spatial_sm
 - "Our recommended thesaurus is GeoNames", but GeoNames doesn't have an official full-string that corresponds to the example (it would need to be constructed by concatenating the placename with the parent admin units)
