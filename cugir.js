@@ -15746,7 +15746,7 @@ const cugirRecords = [
       "geology"
     ],
     "dct_spatial_sm": [
-      "Advance Copy of the Soils of Allegany County area NY"
+      "Allegany County NY"
     ],
     "dct_issued_s": "2012-09-21",
     "dct_temporal_sm": [
