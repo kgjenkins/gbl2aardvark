@@ -17,7 +17,7 @@
 <p><b>You will most certainly want to review and edit the generated records!</b>  Specifically, look for the following:</p>
 <ul>
   <li>If any output fields start with "EDIT ME", that means that the input could not be unambiguously converted to Aardvark.</li>
-  <li>If your input records used the old <code>dct_isPartOf_sm</code> field, then new collection records are automatically created for Aardvark -- these will appear at the end of the output records, and tend to aggregate more info than you will really want to include in the collection record.  See <a href="https://github.com/kgjenkins/gbl2aardvark/blob/main/README.md#collection-records">the README</a> for more details.</li>
+  <li>If your input records used the old <code>dct_isPartOf_sm</code> field (containing a text string of a collection name), there is an option to automatically generate collection records in Aardvark, as well as links to them from the child records.  The new collection records will appear at the end of the output JSON, and tend to aggregate more info than you will really want to include in the collection record, so be sure to edit!  See <a href="https://github.com/kgjenkins/gbl2aardvark/blob/main/README.md#collection-records">the README</a> for more details.</li>
 </ul>
 
 <p>Please report any issues here: <a href="https://github.com/kgjenkins/gbl2aardvark/issues">https://github.com/kgjenkins/gbl2aardvark/issues</a></p>
@@ -37,6 +37,10 @@
 </div>
 <div class='center'>
   <button id='convert'>&#x21d2; convert &#x21d2;</button>
+  <div>
+    <input type='checkbox' id='createCollections'>
+    <label for='createCollections'>Create collection records</label>
+  </div>
 </div>
 <div class='right'>
   <h2>Output</h2>

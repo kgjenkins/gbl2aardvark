@@ -15,6 +15,7 @@ function init () {
   document.getElementById('input').addEventListener('dragleave', dragLeave)
   document.getElementById('input').addEventListener('drop', dropFiles)
   document.getElementById('input').addEventListener('change', processInput)
+  document.getElementById('convert').addEventListener('click', processInput)
   document.getElementById('download').addEventListener('click', downloadFile)
   document.getElementById('test').addEventListener('click', loadTestRecords)
   document.getElementById('cugir').addEventListener('click', loadCugirRecords)
@@ -154,34 +155,9 @@ function processInput () {
   for (let i = 0; i < j.length; i++) {
     j[i] = gbl2aardvark(j[i])
   }
-  
-  // add any new collection records
-  for (let c in collections) {
-    let cr = collections[c]
 
-    // remove temp field
-    delete cr.bbox
-
-    // clean up dct_accessRights_s
-    // in cases of "Public, Restricted", or "Restricted, Public"
-    // we'll call the collection "Public" as long as at least one child is "Public"
-    if (cr.dct_accessRights_s.indexOf('Public') > -1) {
-      cr.dct_accessRights_s = 'Public'
-    }
-
-    // clean up dct_format_s
-    // omit field if it contains more than one format
-    if (cr.dct_format_s.indexOf(',') > -1) {
-      delete cr.dct_format_s
-    }
-
-    // clean up gbl_suppressed_b
-    // omit field if false
-    if (!cr.gbl_suppressed_b) {
-      delete cr.gbl_suppressed_b
-    }
-    
-    j.push(cr)
+  if (document.getElementById('createCollections').checked) {
+    j = addCollections(j, collections)
   }
 
   // convert data back to a string
@@ -687,6 +663,38 @@ function gbl2aardvark (r1) {
     }
     return r
   }
+}
+
+function addCollections(j, collections) {
+  // add any new collection records
+  for (let c in collections) {
+    let cr = collections[c]
+
+    // remove temp field
+    delete cr.bbox
+
+    // clean up dct_accessRights_s
+    // in cases of "Public, Restricted", or "Restricted, Public"
+    // we'll call the collection "Public" as long as at least one child is "Public"
+    if (cr.dct_accessRights_s.indexOf('Public') > -1) {
+      cr.dct_accessRights_s = 'Public'
+    }
+
+    // clean up dct_format_s
+    // omit field if it contains more than one format
+    if (cr.dct_format_s.indexOf(',') > -1) {
+      delete cr.dct_format_s
+    }
+
+    // clean up gbl_suppressed_b
+    // omit field if false
+    if (!cr.gbl_suppressed_b) {
+      delete cr.gbl_suppressed_b
+    }
+    
+    j.push(cr)
+  }
+  return j
 }
 
 function titleCase (s) {

@@ -8,7 +8,9 @@ You can select a local file or files, or simply paste your json records (a singl
 
 ## Collection records
 
-If your records used the old `dct_isPartOf_sm` field, containing a text string of a collection name, this tool automatically creates the new "Collection" records that are required by Aardvark, and links to them from the child records.  The new collection records will appear at the end of the output json.  Here's a chart of how each field is handled when generating the collection records:
+If your input records used the old `dct_isPartOf_sm` field (containing a text string of a collection name), there is an option to automatically generate collection records in Aardvark, as well as links to them from the child records.  The new collection records will appear at the end of the output JSON, and tend to aggregate more info than you will really want to include in the collection record, so be sure to edit!
+
+Here's a chart of how each field is handled when generating the collection records:
 
 | FIELD	| COLLECTION RECORD HANDLING |
 | ----- | ---------------------------------------- |
