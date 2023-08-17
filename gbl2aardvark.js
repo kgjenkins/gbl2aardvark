@@ -230,10 +230,17 @@ function gbl2aardvark (r1) {
   copyField('gbl_georeferenced_b')
 
   // the following order is important
-  see('dct_isPartOf_sm') // so we don't copy the original value
+  if (document.getElementById('createCollections').checked) {
+    see('dct_isPartOf_sm') // so we don't copy the original collection value
+  }
+  r2 = customizations(r1, r2)
   copyExtraFields()
   r2 = checkValues(r2)
-  setIsPartOf()
+
+  if (document.getElementById('createCollections').checked) {
+    setIsPartOf()
+  }
+
   return r2
 
   function see(g) {
@@ -662,6 +669,18 @@ function gbl2aardvark (r1) {
       }
     }
     return r
+  }
+
+  function customizations(r1, r2) {
+    // institution-specific customizations
+    if (r2.schema_provider_s === 'Cornell University') {
+      renameField('dct_isPartOf_sm', 'cugir_collection_sm')
+      if (r2.gbl_resourceType_sm.join('').slice(0,7) === 'EDIT ME') {
+        // old "Unknown" geomtype is always .e00 files, which combine point, line, and polygon
+         r2.gbl_resourceType_sm = ['Point data', 'Line data', 'Polygon data']
+      }
+    }
+    return r2
   }
 }
 
