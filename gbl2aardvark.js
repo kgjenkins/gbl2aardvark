@@ -577,7 +577,7 @@ function gbl2aardvark (r1) {
 
       'Events': 'events?,disasters?,concerts?,races?,protests?,crime,arrests?,accidents?,cases?',
 
-      'Geology': 'geolog.*,geoscientificInformation,earth science,geophysic.*,minerals?,rocks?,earthquakes?,volcane*,landslides?,gravit.*,soils?,permafrost,erosion',
+      'Geology': 'geolog.*,geoscientificInformation,geophysic.*,minerals?,rocks?,earthquakes?,volcane*,landslides?,gravit.*,soils?,permafrost,erosion',
 
       'Health': 'health,human ecology,safety,diseases?,illness.*,hygiene,substance abuse,hospitals?,doctors?',
 
@@ -593,7 +593,7 @@ function gbl2aardvark (r1) {
 
       'Oceans': 'ocean.*,tides?,tidal,waves?,coast.*,reefs?',
 
-      'Property': 'propert.*,planningCadastre,land use,zoning,cadastr.*,land ownership',
+      'Property': 'propert.*,planningCadastre,zoning,cadastr.*,land ownership',
 
       'Society': 'society,cultures?,settlements?,anthropology,archaeology,education.*,tradition.*,manners,customs,demograph.*,recreation.*,social,crimes?,justice,census.*,sociolog.*,parks,elections?,voting,legislat.*,religion',
 
