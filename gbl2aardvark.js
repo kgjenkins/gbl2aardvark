@@ -674,7 +674,22 @@ function gbl2aardvark (r1) {
   function customizations(r1, r2) {
     // institution-specific customizations
     if (r2.schema_provider_s === 'Cornell University') {
+      
+      // only keep publishers that don't also exist as creators
+      if (Array.isArray(r2.dct_publisher_sm)) {
+        let p2 = []
+        r2.dct_publisher_sm.forEach((v) => {
+          if (!r2.dct_creator_sm || r2.dct_creator_sm.indexOf(v) === -1) {
+            p2.push(v)
+          }
+        })
+        r2.dct_publisher_sm = p2
+      }
+
+      // cugir_collection as an ordinary string
       renameField('dct_isPartOf_sm', 'cugir_collection_sm')
+      
+      // fix resourceType for .e00 files
       if (r2.gbl_resourceType_sm.join('').slice(0,7) === 'EDIT ME') {
         // old "Unknown" geomtype is always .e00 files, which combine point, line, and polygon
          r2.gbl_resourceType_sm = ['Point data', 'Line data', 'Polygon data']
